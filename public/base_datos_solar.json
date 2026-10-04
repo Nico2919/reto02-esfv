@@ -1,0 +1,67 @@
+[
+  {
+    "id": "nazareth",
+    "nombre": "Nazareth, Alta Guajira (caso de prueba)",
+    "lat": 12.18,
+    "lon": -71.28,
+    "inclinacion": 12,
+    "azimut": 180,
+    "anualOficial": 5.8,
+    "mesCriticoOficial": 5.2,
+    "mensual": [6.1, 6.2, 6.1, 6.0, 5.8, 5.9, 6.0, 5.9, 5.4, 5.2, 5.3, 5.9],
+    "fuente": "Valor anual y de mes critico: caso de prueba oficial del TdR Reto 02. Perfil mensual: NASA POWER LARC climatology.",
+    "fechaConsulta": "2026-09-28"
+  },
+  {
+    "id": "riohacha",
+    "nombre": "Riohacha, La Guajira",
+    "lat": 11.52,
+    "lon": -72.92,
+    "inclinacion": 12,
+    "azimut": 180,
+    "anualOficial": 5.61,
+    "mesCriticoOficial": null,
+    "mensual": [6.1, 6.2, 6.0, 5.8, 5.5, 5.6, 5.8, 5.7, 5.2, 5.0, 5.1, 5.7],
+    "fuente": "UPME/IDEAM - Atlas de Radiacion Solar de Colombia. Contrastado con datos historicos POWER LARC.",
+    "fechaConsulta": "2026-09-28"
+  },
+  {
+    "id": "barranquilla",
+    "nombre": "Barranquilla, Atlantico",
+    "lat": 11.04,
+    "lon": -74.82,
+    "inclinacion": 11,
+    "azimut": 180,
+    "anualOficial": 5.95,
+    "mesCriticoOficial": null,
+    "mensual": [6.4, 6.5, 6.3, 6.0, 5.8, 6.1, 6.3, 6.1, 5.5, 5.3, 5.5, 6.2],
+    "fuente": "UPME/IDEAM - Atlas de Radiacion Solar de Colombia. Contrastado con datos historicos POWER LARC.",
+    "fechaConsulta": "2026-09-28"
+  },
+  {
+    "id": "bogota",
+    "nombre": "Bogota D.C. (sabana andina)",
+    "lat": 4.71,
+    "lon": -74.15,
+    "inclinacion": 5,
+    "azimut": 180,
+    "anualOficial": 4.04,
+    "mesCriticoOficial": null,
+    "mensual": [4.5, 4.4, 4.2, 3.8, 3.6, 3.7, 3.9, 4.1, 3.9, 3.7, 3.8, 4.3],
+    "fuente": "UPME/IDEAM - Atlas de Radiacion Solar de Colombia. Contrastado con datos historicos POWER LARC.",
+    "fechaConsulta": "2026-09-28"
+  },
+  {
+    "id": "leticia",
+    "nombre": "Leticia, Amazonas",
+    "lat": -4.21,
+    "lon": -69.94,
+    "inclinacion": 4,
+    "azimut": 0,
+    "anualOficial": 4.0,
+    "mesCriticoOficial": null,
+    "mensual": [4.3, 4.1, 3.8, 3.6, 3.7, 3.9, 4.2, 4.4, 4.2, 4.0, 3.8, 4.1],
+    "fuente": "Consulta historica NASA POWER - Radiacion solar incidente en zona ecuatorial amazonica.",
+    "fechaConsulta": "2026-09-28"
+  }
+]
