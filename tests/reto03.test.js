@@ -98,6 +98,7 @@ test('RF-36: PDF ejecutivo de una pagina en ambas ramas y con errores', () => {
   for (const patch of [{},{rama:'sin'},{etaInv:0},{bateriaId:'tdr-lfp',vBanco:51.2,dod:.8,etaBat:.92}]) {
     const doc=construirInforme({proyecto:proyectoTdr().proyecto,resultados:{pInst:5810,energiaMes:227.4,costoMes:227400},h,config:{...c,...patch},resultado:calc(patch)});
     assert.equal(doc.getNumberOfPages(),1); assert.ok(doc.output('arraybuffer').byteLength>3000);
+    assert.ok(doc.output().includes('Integrantes: Equipo ESFV'));
   }
 });
 test('Regresion Reto 02: funciones extraidas sin cambiar resultados del generador', () => {

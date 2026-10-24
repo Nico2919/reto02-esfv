@@ -15,11 +15,12 @@ export function construirInforme({ proyecto, resultados, h, config: c, resultado
     });
     return doc.lastAutoTable.finalY + 5;
   };
-  doc.setFillColor(11, 18, 32); doc.rect(0, 0, 210, 22, 'F'); doc.setTextColor(255);
-  line('ESFV | RETOS 01 + 02 + 03 | INFORME EJECUTIVO', 9, 12);
+  doc.setFillColor(11, 18, 32); doc.rect(0, 0, 210, 24, 'F'); doc.setTextColor(255);
+  line('RETO 03 ESFV | INVERSOR Y BANCO DE BATERIAS', 9, 12);
   line(`${proyecto.nombre.slice(0, 65)} | ${proyecto.fecha} | ${proyecto.tipoApp}`, 16, 8);
+  if (proyecto.integrantes?.trim()) line(`Integrantes: ${proyecto.integrantes.split('\n').map(n => n.trim()).filter(Boolean).join(' / ')}`, 21, 6);
   doc.setTextColor(22, 32, 46);
-  let y = table(26, ['Reto 01: demanda', 'Perfil y operacion', 'Energia temporal (06-18 h)'], [[
+  let y = table(26, ['Consumo del proyecto', 'Perfil y operacion', 'Energia temporal (06-18 h)'], [[
     `Ed ${f(h.edWh / 1000, 3)} kWh/dia; Pmax ${f(h.pMax, 0)} W a ${h.horaPico}:00\nP instalada ${f(resultados.pInst / 1000)} kW`,
     `${h.diasMes} dias/mes; ${h.diasMes * 12} dias/ano\nE mes ${f(resultados.energiaMes)} kWh; costo mes $${Math.round(resultados.costoMes)}`,
     `Dentro ${f(h.dentroWh / 1000, 3)} / fuera ${f(h.fueraWh / 1000, 3)} kWh/dia`,
@@ -27,7 +28,7 @@ export function construirInforme({ proyecto, resultados, h, config: c, resultado
   doc.setFontSize(6);
   const perfilLines = doc.splitTextToSize(`Perfil 00-23 h [W]: ${h.perfil.map(v => f(v, 0)).join(', ')}`, 185);
   doc.text(perfilLines, 12, y); y += perfilLines.length * 2.5 + 5;
-  y = table(y, ['Reto 02: generador heredado', 'Modulo y coeficientes', 'Recurso y temperaturas'], [[
+  y = table(y, ['Paneles solares de partida', 'Modulo y coeficientes', 'Recurso y temperaturas'], [[
     `${f(h.potenciaWp / 1000)} kWp; ${h.ns}S x ${h.np}P\nPreq ${f(h.requeridaReto02Wp / 1000)} kWp; margen ${f(h.excedenteReto02Pct)}%\nArea ${f(h.areaGenerador)} / ${f(h.areaDisponible)} m2\nI diseno Reto 02 ${f(h.corrienteDisenoReto02)} A`,
     `${h.modulo.fabricante} ${h.modulo.modelo}\n${h.modulo.potencia} Wp; Voc/Vmp ${h.modulo.voc}/${h.modulo.vmp} V\nIsc/Imp ${h.modulo.isc}/${h.modulo.imp} A; beta ${h.modulo.beta}%/C\nalpha ${h.modulo.alpha}; gamma ${h.modulo.gamma}%/C`,
     `HSP anual/critica ${f(h.hspAnual)}/${f(h.hspCritico)}; PR ${h.pr}\nTmin ${h.tMin} C; Tcelda ${f(h.tCelda)} C\n${h.recursoNombre ?? ''}\n${(h.recursoFuente ?? '').slice(0, 95)}`,
@@ -38,7 +39,7 @@ export function construirInforme({ proyecto, resultados, h, config: c, resultado
     return doc;
   }
   const e = r.seleccionado;
-  y = table(y, ['Reto 03: rama y equipo', 'Entradas visibles', 'Arreglo efectivo'], [[
+  y = table(y, ['Reto 03: sistema y equipo', 'Entradas de diseno', 'Paneles utilizados'], [[
     `${r.rama === 'con' ? 'Con almacenamiento' : 'Sin almacenamiento'}\n${e?.equipo.modelo ?? 'Sin equipo seleccionado'} (${e?.equipo.origen ?? '-'})\n${e?.estado ?? 'Pendiente'}`,
     `etaInv ${c.etaInv}; DC/AC ${c.dcAcMin}-${c.dcAcMax}\n${r.banco ? `N ${c.autonomia} d; DoD ${f(c.dod * 100)}%; fT ${c.factorTemp}\nVbanco ${c.vBanco}; Vnom ${c.vNominal}; etaBat ${c.etaBat}` : 'Banco: no aplica'}`,
     `${r.arreglo.ns}S x ${r.arreglo.np}P; ${r.arreglo.nTotal} modulos\n${f(r.arreglo.potenciaWp / 1000)} kWp; +${r.modulosAgregados} modulos\nIsc ${f(r.conductor.isc)} A; 1.25 Isc ${f(r.conductor.diseno)} A`,

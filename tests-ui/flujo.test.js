@@ -18,102 +18,172 @@ before(async () => {
 });
 after(async () => { await browser?.close(); server?.kill(); });
 
+const banco = page => page.locator('section').filter({has:page.getByRole('heading',{name:'Las baterías que necesitas'})});
+const nav = (page, name) => page.locator('.app-nav').getByRole('button',{name}).click();
+async function abrir(page, nombre) {
+  const summary=page.getByText(nombre,{exact:true});
+  if(await summary.locator('..').getAttribute('open') === null) await summary.click();
+}
 async function pageTdr(data=proyectoTdr()) {
   const page=await browser.newPage({viewport:{width:1366,height:950}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(baseURL);
   await page.locator('input[type=file]').nth(1).setInputFiles({name:'caso.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});
-  await page.getByRole('button',{name:'5 MPPT y baterías'}).click();
-  await page.getByText('38.40 kWh · 800.00 Ah',{exact:true}).waitFor();
+  await nav(page,/5.*Inversor y baterías/);
+  await expect(banco(page).locator('.r3-metrics').first().getByText('38.40 kWh',{exact:true})).toBeVisible();
   return page;
 }
-test('Pestaña 5: caso TdR, cambio de rama, LFP, ajustes y datos aguas arriba', async () => {
-  const page=await pageTdr();
-  assert.match(await page.locator('.reto03').innerText(),/200.67/);
-  await page.screenshot({path:'tmp/qa/reto03-desktop.png',fullPage:true});
-  await page.getByLabel('Rama',{exact:true}).selectOption('sin');
-  assert.equal(await page.getByRole('heading',{name:'4. Banco de baterías'}).count(),0);
-  assert.match(await page.locator('.reto03').innerText(),/DC\/AC 1.10/);
-  await page.getByLabel('Rama',{exact:true}).selectOption('con');
-  await page.getByLabel('Batería / tecnología').selectOption('tdr-lfp');
-  await page.getByText('25.60 kWh · 500.00 Ah',{exact:true}).waitFor();
-  assert.equal(await page.getByLabel('Tensión banco instalada (V)').inputValue(),'51.2');
-  assert.equal(await page.getByLabel('Clase nominal regulador (V)').inputValue(),'48');
-  await page.getByLabel('Batería / tecnología').selectOption('tdr-agm');
-  await page.getByRole('button',{name:'Aceptar ajuste mes crítico'}).click();
-  await page.getByText('4S × 2P · 8 módulos',{exact:true}).waitFor();
-  assert.match(await page.locator('.reto03').innerText(),/Ningun equipo admite/);
-  await page.getByRole('button',{name:'Retirar ajuste y volver al generador heredado'}).click();
-  await page.getByRole('button',{name:'4 Generador FV'}).click();
-  assert.match(await page.locator('body').innerText(),/2.20 kWp/);
-  await page.getByRole('button',{name:'1 Proyecto / contexto'}).click();
-  const tipo=page.getByRole('combobox');
-  await tipo.selectOption('On-grid');
-  await page.getByRole('button',{name:'5 MPPT y baterías'}).click();
-  await page.getByLabel('Rama',{exact:true}).selectOption('auto');
-  assert.equal(await page.getByRole('heading',{name:'4. Banco de baterías'}).count(),0);
-  assert.match(await page.locator('.reto03').innerText(),/On-grid · 30 días\/mes/);
+
+test('Inicio comprensible: proyecto vacio, ejemplo en un clic y ayuda separada', async () => {
+  const page=await browser.newPage({viewport:{width:1366,height:950}});
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(baseURL);
+  await expect(page.getByRole('heading',{name:'Empieza con lo que necesitas alimentar'})).toBeVisible();
+  await expect(page.getByRole('button',{name:'Descargar informe',exact:true})).toBeDisabled();
+  assert.doesNotMatch(await page.locator('body').innerText(),/RF-\d|React|Vmp|Voc|DoD/);
+  await page.screenshot({path:'tmp/qa/inicio-reto03.png',fullPage:true});
+  await page.getByRole('button',{name:'Probar con un ejemplo',exact:true}).click();
+  await expect(banco(page).getByText('16 baterías',{exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Comprueba si la energía alcanza'})).toBeVisible();
+  assert.equal(await page.locator('.r3-advanced').getAttribute('open'),null);
+  assert.equal(await page.locator('.r3-tools').getAttribute('open'),null);
+  assert.doesNotMatch(await page.locator('body').innerText(),/RF-\d|React|1,25|betaVoc/);
+  const help=await page.request.get(baseURL+'/guia-tecnica.html');
+  assert.equal(help.status(),200); assert.match(await help.text(),/Voc_frío/);
   await page.close();
 });
-test('Guardar/cargar reconstruye Reto 03 y genera PDF descargable de una pagina', async () => {
+
+test('Caso TdR: ramas, LFP, comprobaciones accesibles y ampliacion reversible', async () => {
   const page=await pageTdr();
-  await page.getByLabel('Autonomía (días)').fill('3');
+  const ctrl=page.locator('.r3-equipo').filter({hasText:'CTRL-B'});
+  await ctrl.getByText('Ver comprobaciones y ficha',{exact:true}).click();
+  assert.match(await ctrl.innerText(),/200.67/);
+  await ctrl.getByText('Ver comprobaciones y ficha',{exact:true}).click();
+  await page.screenshot({path:'tmp/qa/reto03-desktop.png',fullPage:true});
+  await page.getByLabel('¿Usarás baterías?',{exact:true}).selectOption('sin');
+  assert.equal(await banco(page).count(),0);
+  await expect(page.getByText(/En horas de mucho sol, el inversor puede limitar/)).toBeVisible();
+  const inv=page.locator('.r3-equipo').filter({hasText:'INV-B'});
+  await inv.getByText('Ver comprobaciones y ficha',{exact:true}).click();
+  assert.match(await inv.innerText(),/1.10/);
+  await page.getByLabel('¿Usarás baterías?',{exact:true}).selectOption('con');
+  await page.getByLabel('Tipo de batería',{exact:true}).selectOption('tdr-lfp');
+  await expect(banco(page).locator('.r3-metrics').first().getByText('25.60 kWh',{exact:true})).toBeVisible();
+  await abrir(page,'Ajustes avanzados del sistema');
+  await expect(page.getByLabel('Voltaje del banco de baterías (V)')).toHaveValue('51.2');
+  await expect(page.getByLabel('Voltaje nominal del cargador (V)')).toHaveValue('48');
+  await page.getByLabel('Tipo de batería',{exact:true}).selectOption('tdr-agm');
+  await page.locator('.r3-balance-card').filter({hasText:'Un día del mes con menos sol'}).getByRole('button',{name:'Añadir 4 paneles para este escenario'}).click();
+  await expect(page.locator('.r3-adjustment')).toContainText('Ahora tienes 8 paneles');
+  await expect(page.getByText(/Ningún equipo del catálogo admite/)).toBeVisible();
+  await page.getByRole('button',{name:'Deshacer ampliación'}).click();
+  assert.equal(await page.locator('.r3-adjustment').count(),0);
+  await nav(page,/4.*Paneles solares/);
+  assert.match(await page.locator('body').innerText(),/2.20 kWp/);
+  await nav(page,/1.*Proyecto/);
+  await page.getByLabel('Tipo de aplicacion').selectOption('On-grid');
+  await nav(page,/5.*Inversor y baterías/);
+  await page.getByLabel('¿Usarás baterías?',{exact:true}).selectOption('auto');
+  assert.equal(await banco(page).count(),0);
+  await page.close();
+});
+
+test('Guardar/abrir conserva los datos y el informe PDF se descarga', async () => {
+  const page=await pageTdr();
+  await page.getByLabel('Días de respaldo',{exact:true}).fill('3');
   const downloadPromise=page.waitForEvent('download');
   await page.getByRole('button',{name:'Guardar proyecto',exact:true}).click();
-  const download=await downloadPromise; const saved=JSON.parse(await readFile(await download.path(),'utf8'));
+  const download=await downloadPromise;
+  const saved=JSON.parse(await readFile(await download.path(),'utf8'));
   assert.equal(saved.version,3); assert.equal(saved.reto03.autonomia,3); assert.ok(saved.baseSolar); assert.equal(saved.catalogosReto03.conversion.length,12);
-  const expected=await page.locator('.r3-metrics').nth(2).innerText();
-  await page.getByLabel('Autonomía (días)').fill('1');
+  const expected=await banco(page).locator('.r3-metrics').first().innerText();
+  await page.getByLabel('Días de respaldo',{exact:true}).fill('1');
   await page.locator('input[type=file]').nth(1).setInputFiles({name:'guardado.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
-  await expect(page.getByLabel('Autonomía (días)')).toHaveValue('3');
-  assert.equal(await page.locator('.r3-metrics').nth(2).innerText(),expected);
-  const pdfPromise=page.waitForEvent('download'); await page.getByRole('button',{name:'Informe PDF · 1 página'}).click();
-  const pdf=await pdfPromise; await pdf.saveAs('tmp/qa/informe-navegador.pdf');
-  const content=await readFile('tmp/qa/informe-navegador.pdf'); assert.equal(content.subarray(0,4).toString(),'%PDF');
+  await expect(page.getByLabel('Días de respaldo',{exact:true})).toHaveValue('3');
+  assert.equal(await banco(page).locator('.r3-metrics').first().innerText(),expected);
+  const pdfPromise=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Descargar informe',exact:true}).click();
+  await (await pdfPromise).saveAs('tmp/qa/informe-navegador.pdf');
+  assert.equal((await readFile('tmp/qa/informe-navegador.pdf')).subarray(0,4).toString(),'%PDF');
   await page.close();
 });
-test('Catalogo editable valida antes de aplicar y entradas invalidas bloquean', async () => {
+
+test('Edicion avanzada conserva validacion, datos pendientes y catalogos separados', async () => {
   const page=await pageTdr();
-  await page.getByRole('button',{name:'Editar / importar catálogos JSON'}).click();
-  await page.getByLabel('Catálogos completos (conversion y baterias)').fill('{"conversion":[]}');
-  await page.getByRole('button',{name:'Validar y aplicar catálogos'}).click();
+  await expect(page.getByText(/Falta en la ficha el límite de corriente/)).toBeVisible();
+  await abrir(page,'Catálogos y documentación técnica');
+  await page.getByRole('button',{name:'Editar catálogos',exact:true}).click();
+  await page.getByLabel('Catálogos JSON',{exact:true}).fill('{"conversion":[]}');
+  await page.getByRole('button',{name:'Validar y guardar catálogo'}).click();
   assert.match(await page.getByRole('alert').innerText(),/dos baterias/);
-  await page.getByRole('button',{name:'Cancelar',exact:true}).click();
-  await page.getByLabel('DoD de diseño (%)').fill('0');
-  await page.getByRole('heading',{name:'Corrige las entradas para calcular'}).waitFor();
-  assert.equal(await page.getByRole('heading',{name:'4. Banco de baterías'}).count(),0);
+  await page.getByRole('button',{name:'Cancelar edición'}).click();
+  await abrir(page,'Ajustes avanzados del sistema');
+  await page.getByLabel('Porcentaje utilizable de la batería (%)',{exact:true}).fill('0');
+  await expect(page.getByRole('heading',{name:'Revisa estos datos para continuar'})).toBeVisible();
+  assert.equal(await banco(page).count(),0);
+  await page.getByLabel('Porcentaje utilizable de la batería (%)',{exact:true}).fill('50');
+  await page.getByLabel('Catálogo de equipos',{exact:true}).selectOption('comercial');
+  await expect(page.locator('.r3-equipment-grid')).toContainText('Victron Energy');
+  assert.doesNotMatch(await page.locator('.r3-equipment-grid').innerText(),/CTRL-A|CTRL-B|CTRL-C/);
   await page.close();
 });
-test('RF-26: editar cargas y PR en Retos 01/02 actualiza la pestaña 5', async () => {
+
+test('Editar aparatos y rendimiento actualiza consumo, paneles y Reto 03', async () => {
   const page=await pageTdr();
-  await page.getByRole('button',{name:'2 Cuadro de cargas'}).click();
-  await page.getByPlaceholder('Ej.: Aire acondicionado').fill('Carga adicional');
-  await page.getByText('Potencia [W]',{exact:true}).locator('..').locator('input').fill('100');
-  await page.getByPlaceholder('08-12;14-17').fill('17-18');
+  await nav(page,/2.*Aparatos/);
+  await page.getByLabel('Nombre del aparato').fill('Carga adicional');
+  await page.getByLabel('Potencia [W]',{exact:true}).fill('100');
+  await page.getByLabel('Horario de uso').fill('17-18');
   await page.getByRole('button',{name:'Agregar carga',exact:true}).click();
-  await page.getByRole('button',{name:'5 MPPT y baterías'}).click();
+  await nav(page,/5.*Inversor y baterías/);
   await expect(page.getByText('7.680 kWh/día',{exact:true})).toBeVisible();
-  await expect(page.locator('.r3-metrics').first().getByText('1010 W',{exact:true})).toBeVisible();
-  await expect(page.getByText('5.280 / 2.400 kWh',{exact:true})).toBeVisible();
-  await page.getByRole('button',{name:'4 Generador FV'}).click();
-  await page.getByText('Factor global de desempeño (PR)',{exact:true}).locator('..').locator('input').fill('0.6');
-  await page.getByRole('button',{name:'5 MPPT y baterías'}).click();
-  assert.match(await page.locator('.r3-metrics').first().innerText(),/5.80 \/ 5.20 · 0.6/);
-  assert.match(await page.locator('.reto03').innerText(),/3.065/);
+  await expect(page.locator('.r3-overview').locator('.r3-metrics').first().getByText('1010 W',{exact:true})).toBeVisible();
+  await abrir(page,'Ver datos del consumo y los paneles');
+  assert.match(await page.locator('.r3-overview').innerText(),/5.280 kWh.*2.400 kWh/);
+  await nav(page,/4.*Paneles solares/);
+  await abrir(page,'Opciones avanzadas y catálogo de paneles');
+  await page.getByLabel('Rendimiento esperado de los paneles (PR)').fill('0.6');
+  await nav(page,/5.*Inversor y baterías/);
+  await abrir(page,'Ver datos del consumo y los paneles');
+  assert.match(await page.locator('.r3-overview').innerText(),/PR.*0.6/);
+  assert.match(await page.locator('.r3-balance-grid').innerText(),/3.065/);
   await page.close();
 });
-test('Retos 01/02 conservados, archivo v2 y pantalla movil sin desborde', async () => {
+
+test('Proyecto anterior y los cinco pasos funcionan en movil sin desborde', async () => {
   const data=proyectoTdr(); data.version=2; delete data.reto03; delete data.catalogosReto03;
   const page=await browser.newPage({viewport:{width:390,height:844}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(baseURL);
   await page.locator('input[type=file]').nth(1).setInputFiles({name:'v2.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});
-  await page.getByRole('button',{name:'3 Resultados',exact:true}).click();
-  assert.match(await page.locator('body').innerText(),/7.58/); assert.match(await page.locator('body').innerText(),/0.91/);
-  await page.getByRole('button',{name:'5 MPPT y baterías'}).click();
-  await page.getByText('38.40 kWh · 800.00 Ah',{exact:true}).waitFor();
+  for(const name of [/1.*Proyecto/,/2.*Aparatos/,/3.*Consumo/,/4.*Paneles solares/,/5.*Inversor y baterías/]) {
+    await nav(page,name);
+    if(String(name).includes('Consumo')) { assert.match(await page.locator('body').innerText(),/7.58/); assert.match(await page.locator('body').innerText(),/0.91/); }
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),String(name));
+  }
+  await expect(banco(page).locator('.r3-metrics').first().getByText('38.40 kWh',{exact:true})).toBeVisible();
   await page.screenshot({path:'tmp/qa/reto03-mobile.png',fullPage:true});
-  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
+  await page.screenshot({path:'tmp/qa/reto03-mobile-viewport.png'});
+  await page.close();
+  assert.deepEqual(errors,[]);
+});
+
+test('Recorrido desde cero: horarios habituales y botones para continuar', async () => {
+  const page=await browser.newPage({viewport:{width:1366,height:950}});
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(baseURL);
+  await page.getByRole('button',{name:'Agregar mis aparatos'}).click();
+  await page.getByLabel('Nombre del aparato').fill('Luz LED');
+  await page.getByLabel('Potencia [W]',{exact:true}).fill('10');
+  await page.getByRole('button',{name:'Solo de noche',exact:true}).click();
+  await expect(page.getByLabel('Horario de uso')).toHaveValue('18-06');
+  await page.getByRole('button',{name:'Agregar carga',exact:true}).click();
+  await page.getByRole('button',{name:'Ver mi consumo'}).click();
+  assert.match(await page.locator('main').innerText(),/0.12/);
+  await page.getByRole('button',{name:'Elegir paneles solares',exact:true}).click();
+  await page.getByRole('button',{name:'Continuar con inversor y baterías'}).click();
+  await expect(page.getByRole('heading',{name:'Elige cómo funcionará tu sistema'})).toBeVisible();
+  await expect(page.getByText('0.120 kWh/día',{exact:true})).toBeVisible();
   await page.close();
   assert.deepEqual(errors,[]);
 });

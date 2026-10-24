@@ -1,5 +1,7 @@
 # Validación Reto 03
 
+Versión 3.1.0: 16 pruebas numéricas/de regresión y 7 recorridos de navegador. El motor de cálculo conserva sus ecuaciones; la interfaz permite iniciar un proyecto vacío, probar el caso académico y consultar los detalles técnicos bajo demanda.
+
 ## Matriz de cobertura
 
 | RF | Implementación y comprobación |
@@ -18,6 +20,8 @@
 | 36 | Proyecto v3, lectura v1/v2, descargas en navegador y PDF de una página |
 
 `pnpm test` verifica el motor y la regresión Reto 02; `pnpm build` genera producción; `pnpm test:ui` prueba producción con Chromium/Edge. Capturas y PDFs de QA van a `tmp/qa/`, sin versionarse. `pnpm lint` revisa todo el código.
+
+Las pruebas de interfaz incluyen el recorrido desde cero, horarios habituales, ambas ramas, AGM/LFP, ampliación y deshacer, guardar/abrir, PDF, datos de ficha pendientes, edición de catálogos, cambios de aparatos/PR y los cinco pasos en móvil. Las referencias RF y las fórmulas ya no ocupan la pantalla principal: permanecen en comprobaciones, guía técnica y documentación.
 
 ## Caso estandarizado
 
