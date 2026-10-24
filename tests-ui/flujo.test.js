@@ -173,6 +173,32 @@ test('Catalogo ampliado: actualiza proyectos anteriores, filtra inversores y con
   await page.close();
 });
 
+test('Los cinco proyectos de entrega reconstruyen en la aplicacion sus informes y resultados', async () => {
+  const page=await browser.newPage({viewport:{width:1366,height:950}});
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(baseURL);
+  for(const id of ['tdr-agm','tdr-lfp','tdr-sin-almacenamiento','propio-partida','propio-cierre']) {
+    const datos=await readFile(`entrega/reto03/casos/${id}.json`);
+    const esperado=JSON.parse(await readFile(`entrega/reto03/resultados/${id}.json`,'utf8'));
+    await page.locator('input[type=file]').nth(1).setInputFiles({name:`${id}.json`,mimeType:'application/json',buffer:datos});
+    await nav(page,/5.*Inversor y baterías/);
+    const resumen=page.getByLabel('Resumen de tu sistema',{exact:true});
+    await expect(resumen).toContainText(`${(esperado.h.edWh/1000).toFixed(3)} kWh/día`);
+    await expect(resumen).toContainText(`${esperado.h.ns*esperado.h.np} paneles`);
+    await expect(page.getByRole('button',{name:'Equipo seleccionado',exact:true})).toBeVisible();
+    if(esperado.resultado.banco) {
+      await expect(banco(page).locator('.r3-metrics').first()).toContainText(`${esperado.resultado.banco.numero} baterías`);
+      await expect(banco(page).locator('.r3-metrics').first()).toContainText(`${(esperado.resultado.banco.wh/1000).toFixed(2)} kWh`);
+    } else assert.equal(await banco(page).count(),0);
+    const downloadPromise=page.waitForEvent('download');
+    await page.getByRole('button',{name:'Descargar informe',exact:true}).click();
+    const pdf=await readFile(await (await downloadPromise).path());
+    assert.equal((pdf.toString('latin1').match(/\/Type \/Page\b/g)??[]).length,1);
+    assert.ok(pdf.toString('latin1').includes(esperado.resultado.seleccionado.equipo.modelo.split(' (')[0]));
+  }
+  await page.close();
+});
+
 test('Editar aparatos y rendimiento actualiza consumo, paneles y Reto 03', async () => {
   const page=await pageTdr();
   await nav(page,/2.*Aparatos/);

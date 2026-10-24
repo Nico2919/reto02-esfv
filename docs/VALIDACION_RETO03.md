@@ -1,6 +1,8 @@
 # Validación Reto 03
 
-Versión 3.2.0: 20 pruebas numéricas/de regresión y 8 recorridos de navegador. El motor de cálculo conserva sus ecuaciones; la interfaz permite iniciar un proyecto vacío, probar el caso académico y consultar los detalles técnicos bajo demanda.
+Versión 3.2.1: 20 pruebas numéricas/de regresión y 9 recorridos de navegador, más `pnpm entrega:verificar`. El motor de cálculo conserva sus ecuaciones; la interfaz permite iniciar un proyecto vacío, probar el caso académico y consultar los detalles técnicos bajo demanda.
+
+La [entrega versionada](../entrega/reto03/README.md) contiene cinco proyectos, cinco informes PDF de una página y seis escenarios de sensibilidad. La verificación revisa hashes de fuentes/archivos y reconstruye todos los resultados. Un recorrido adicional abre los cinco JSON en el navegador y vuelve a exportar sus informes sin reingresar datos. La [matriz de la guía](../entrega/reto03/MATRIZ_ENTREGABLES.md) distingue requisitos implementados y datos de ficha que permanecen pendientes.
 
 ## Matriz de cobertura
 

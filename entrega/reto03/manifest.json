@@ -1,0 +1,95 @@
+{
+  "version": "3.2.1",
+  "fecha": "2026-10-24",
+  "guia": {
+    "nombre": "TdR_Reto03_ESFV_2026II.pdf",
+    "paginas": 3,
+    "sha256": "5c1a63377edc2c8cda7b22197dea43f75903efbb808473a6ab61529231f5d5e4"
+  },
+  "generacion": "pnpm entrega:generar",
+  "verificacion": "pnpm entrega:verificar",
+  "fuentes": {
+    "package.json": "6e51ad6cbe57114dc0744bcb565812d772e14e0adcffbcd7357237c58fc55d39",
+    "scripts/datos-entrega.mjs": "ad3b192a660408a0edf47da5360272b9933480149095161d9926186e5203ab09",
+    "scripts/generar-entrega.mjs": "6393d584a4c29dd2b61b4b96e9d00e2660f0fa0f8b6f6594fbc5e93253348f39",
+    "src/App.jsx": "1da885ecb83d778e8f699d088b4236ba30c723ad2248d73f52eebf5365208a74",
+    "src/reto02/generador.js": "fe587a75a13c3383748741f77907e00efdd66001d442bab4461c4008736a19e7",
+    "src/reto03/calculos.js": "ffdae262a378a37497e9bbc96d4f7f7679c674de8af44bdbcde7b02767e43266",
+    "src/reto03/informe.js": "e1dcde94ba1ce172690c15d966b5c297d7113857dd083514dcc9be400c04f04d",
+    "src/reto03/proyecto.js": "4013c24eee45ee4d97100da5939d482272b0e1c67ca5aa197bb1397b6e7d875d",
+    "public/ejemplo_reto03.json": "4f623aa6069c82958b6335b2d42d3b19d01cfb7b8c07f78f2973ca172f2fbaa2",
+    "public/catalogo_conversion.json": "10634d94ad9c2d0ad71a8f4efc6fe02492fda899331e3427aeab7ddfcee9ee33",
+    "public/catalogo_conversion_tdr.json": "efb674d5d4a0f51484c9256079f8da2388a355fe5550dda7ae680374a5f8a7b7",
+    "public/catalogo_baterias.json": "8e9afca7bf80f785d93798de492c00f443ceebc34dd68e76d193a8f8d7cd649b"
+  },
+  "archivos": {
+    "casos/tdr-agm.json": {
+      "sha256": "215e9121f97b8f7f8e594cd04e8ec18eb72ad6139c68eaef614fa033f1e71f68",
+      "bytes": 18484
+    },
+    "resultados/tdr-agm.json": {
+      "sha256": "1d09604991a951eb4d43686dbb1179271820d3327cdb1bf728822dff8607bfaf",
+      "bytes": 20404
+    },
+    "informes/tdr-agm.pdf": {
+      "sha256": "4fbf552b1064630374cc6c8bbb00da89c5fb2d21466bdd197588437192474cc5",
+      "bytes": 17423
+    },
+    "casos/tdr-lfp.json": {
+      "sha256": "abd940ebbe830023f9433b0d91f3a3ac3336565eb50e7de1cd1e1ac51ec97113",
+      "bytes": 18487
+    },
+    "resultados/tdr-lfp.json": {
+      "sha256": "29358a824d5bf71b441ca6ff22d3cbc825b664166f55c0377993865ff080aaea",
+      "bytes": 20457
+    },
+    "informes/tdr-lfp.pdf": {
+      "sha256": "975550e5f7b7f8c29f198119a6612f30f5cb4b67d0443a76e08e4df3c5778784",
+      "bytes": 17434
+    },
+    "casos/tdr-sin-almacenamiento.json": {
+      "sha256": "9099afdc87a5c03358c281da01b4e8085e87e6e82d9487119bc4ead1a48de831",
+      "bytes": 18497
+    },
+    "resultados/tdr-sin-almacenamiento.json": {
+      "sha256": "17d7545e8b5b6a287771f337388b5cba579720db09f2e4d91eb2ecfa855d2bd5",
+      "bytes": 14268
+    },
+    "informes/tdr-sin-almacenamiento.pdf": {
+      "sha256": "163bb5e7a94d345ea9b206165cadbb5adbd9cd5b99c5d322dbd62df7502141de",
+      "bytes": 15093
+    },
+    "casos/propio-partida.json": {
+      "sha256": "36f0b9aeef5662d9c0eeb5ae5425b8b7fefc0e6040502a2610c25b6d378990e2",
+      "bytes": 19562
+    },
+    "resultados/propio-partida.json": {
+      "sha256": "2e1c4dc4f9bf2b92678011394f2dad2d262330dedd6c0c20ce317d7636ca27d0",
+      "bytes": 47086
+    },
+    "informes/propio-partida.pdf": {
+      "sha256": "13e3b09d2c2dddd37e398edac0b3e01cf65cec8185178395cea628eb2833d13d",
+      "bytes": 17720
+    },
+    "casos/propio-cierre.json": {
+      "sha256": "21e5b5b21f364b3b0b77b3bed42013579b93aa4fbe5e5519e2992d597f189575",
+      "bytes": 19563
+    },
+    "resultados/propio-cierre.json": {
+      "sha256": "4dbde6c5927991688a8c5efd075c15063a157d669b2b33b82b8a5a00371a4fc6",
+      "bytes": 46220
+    },
+    "informes/propio-cierre.pdf": {
+      "sha256": "64047381acc314ebfd71c52517f4f4d71b6bbfbc71829fe0a777be2ba9406f6b",
+      "bytes": 17653
+    },
+    "resultados/sensibilidad.json": {
+      "sha256": "18f9e12aa370c80bd5d3b8422fe936d6181d2f17d2de77d7cb8d97c26d07d271",
+      "bytes": 5335
+    },
+    "resultados/sensibilidad.csv": {
+      "sha256": "34241978b1a3876d6d24eb2acd286c978d81d5a18575307c22dc3802a67e0824",
+      "bytes": 1929
+    }
+  }
+}

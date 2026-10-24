@@ -2,7 +2,9 @@
 
 Aplicación web para elegir el equipo de conversión y dimensionar el almacenamiento de un sistema solar fotovoltaico. Proyecto de Energía Solar Fotovoltaica, Universidad del Magdalena, periodo 2026-II.
 
-**Versión 3.2.0.** La entrega se centra en Reto 03. El registro de aparatos y el cálculo de paneles de los Retos 01 y 02 se mantienen integrados como datos de partida.
+**Versión 3.2.1.** La entrega se centra en Reto 03. El registro de aparatos y el cálculo de paneles de los Retos 01 y 02 se mantienen integrados como datos de partida.
+
+**[Abrir la entrega completa del Reto 03](entrega/reto03/README.md):** cinco proyectos reabribles, cinco informes PDF de una página, caso propio propuesto, sensibilidad, matriz de la guía y verificación automática de integridad.
 
 ## Probar la aplicación
 
@@ -33,6 +35,9 @@ La pantalla principal usa lenguaje sencillo. Las fórmulas, siglas, comprobacion
 |---|---|
 | [Guía de uso](docs/GUIA_USO.md) | Recorrido para una persona que abre la aplicación por primera vez |
 | [Entrega del Reto 03](docs/ENTREGA_RETO03.md) | Alcance, demostración y archivos del proyecto |
+| [Paquete de entregables](entrega/reto03/README.md) | JSON, PDF, resultados completos y sensibilidad listos para revisar |
+| [Matriz de la guía](entrega/reto03/MATRIZ_ENTREGABLES.md) | Correspondencia de cada criterio y RF con su evidencia |
+| [Caso propio y sensibilidad](entrega/reto03/MEMORIA_CASO_PROPIO.md) | Supuestos, selección del equipo, ajuste del generador y seis escenarios |
 | [Validación RF-25 a RF-36](docs/VALIDACION_RETO03.md) | Matriz de requisitos y resultados numéricos esperados |
 | [Método de cálculo](docs/METODO_CALCULO.md) | Ecuaciones, unidades, supuestos y datos pendientes |
 | [Catálogo de inversores](docs/CATALOGO_INVERSORES.md) | Nueve modelos reales, límites por revisión y documentos oficiales |
@@ -42,6 +47,7 @@ La pantalla principal usa lenguaje sencillo. Las fórmulas, siglas, comprobacion
 
 ```sh
 pnpm test
+pnpm entrega:verificar
 pnpm lint
 pnpm build
 pnpm exec playwright install chromium
@@ -57,7 +63,7 @@ pnpm test:ui
 
 GitHub Actions ejecuta las pruebas, lint y build al actualizar `main`, las ramas `feat/` y las solicitudes de integración. Su resultado se consulta en **Actions**. Las capturas y PDF de pruebas quedan en `tmp/qa/` localmente; no forman parte del código fuente.
 
-La validación local de esta versión incluye 20 pruebas numéricas/de regresión y 8 recorridos de interfaz.
+La validación local de esta versión incluye 20 pruebas numéricas/de regresión, 9 recorridos de interfaz y la comprobación de integridad/reconstrucción de la entrega. Los cinco proyectos publicados también se abren y exportan desde la aplicación durante las pruebas. Para regenerar sus salidas tras cambiar datos o motores: `pnpm entrega:generar`, revisión de PDF y `pnpm entrega:verificar`.
 
 ## Organización
 
@@ -67,6 +73,7 @@ src/reto02/          Motor de paneles del Reto 02, conservado
 src/App.jsx         Integración con aparatos y consumo del Reto 01
 public/             Catálogos JSON, caso de ejemplo y guía técnica
 docs/               Documentación de uso, entrega, método y validación
+entrega/reto03/     Casos, informes, memoria, matriz de la guía y resultados reproducibles
 tests/              Pruebas numéricas y de regresión
 tests-ui/           Recorridos reales en navegador
 .github/workflows/  Validación automática de actualizaciones

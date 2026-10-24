@@ -4,7 +4,7 @@
 
 Dimensionamiento del regulador/inversor MPPT y banco de baterías. Una sola aplicación conserva las cargas y los paneles de los Retos 01/02 e incorpora las dos ramas del Reto 03. El alcance funcional y los resultados esperados se documentan en [VALIDACION_RETO03.md](VALIDACION_RETO03.md).
 
-La versión 3.2.0 presenta un recorrido guiado y nueve inversores comerciales con documentación oficial, descritos en [CATALOGO_INVERSORES.md](CATALOGO_INVERSORES.md). La pantalla inicial permite empezar desde cero, abrir un proyecto existente o probar el caso académico.
+La versión 3.2.1 contiene el [paquete completo de revisión](../entrega/reto03/README.md), contrastado con la guía de tres páginas: [matriz de criterios y RF](../entrega/reto03/MATRIZ_ENTREGABLES.md). Incluye un recorrido guiado y nueve inversores comerciales con documentación oficial, descritos en [CATALOGO_INVERSORES.md](CATALOGO_INVERSORES.md).
 
 ## Demostración sugerida
 
@@ -20,18 +20,19 @@ La demostración usa referencias TdR, identificadas como académicas. El catálo
 
 ## Archivos para presentar
 
-- Enlace al repositorio y a la rama/commit de entrega con el código de Reto 03.
-- JSON del proyecto propio guardado desde la aplicación.
-- PDF ejecutivo exportado desde la misma sesión.
-- Guía de uso, método y matriz RF incluidos en `docs/`.
-- Historial de actualizaciones en `CHANGELOG.md` y resultados de validación automática en GitHub Actions.
+- Aplicación web integrada, código e instrucciones de la raíz; es la única versión funcional pedida por la guía.
+- [Cinco proyectos JSON e informes PDF](../entrega/reto03/README.md#proyectos-que-se-pueden-abrir-e-informes): TdR AGM/LFP/sin baterías y caso propio propuesto antes/después del cierre.
+- [Memoria del caso propio y sensibilidad](../entrega/reto03/MEMORIA_CASO_PROPIO.md), con resultados completos y tabla CSV.
+- Guía de uso, método, matriz RF, catálogo y fuentes; [correspondencia con cada criterio](../entrega/reto03/MATRIZ_ENTREGABLES.md).
+- Historial de versiones, pruebas y manifest de integridad verificado por GitHub Actions.
 
-El nombre, fecha e integrantes se completan en **Proyecto** antes de exportar el caso propio. Los datos del ejemplo no se sustituyen por datos personales inventados.
+Los informes publicados incluyen Nicolas Paz, como consta en el proyecto local guardado. Los nombres, fecha e integrantes pueden corregirse en **Proyecto** antes de volver a exportar. El caso propio es una propuesta de estudio explícita; no se presenta como medición real. El uso de IA está declarado en el índice de entrega.
 
 ## Comprobaciones de una actualización
 
 ```sh
 pnpm test
+pnpm entrega:verificar
 pnpm lint
 pnpm build
 pnpm exec playwright install chromium
@@ -40,4 +41,4 @@ pnpm test:ui
 
 En Windows se puede usar Edge con `$env:PLAYWRIGHT_CHANNEL = 'msedge'`. Las pruebas de navegador comprueban el recorrido inicial, el ejemplo, ambas ramas, baterías, ampliación reversible, entradas inválidas, lectura de proyectos anteriores, PDF y pantallas pequeñas. El cálculo físico conserva sus pruebas de regresión.
 
-El repositorio conserva su URL histórica. Para incorporar una actualización de la rama `feat/reto03-mppt-baterias` en `main`, se utiliza una solicitud de integración y se revisan sus comprobaciones. No se eliminan los retos anteriores ni se reescribe su historial.
+El repositorio conserva su URL histórica y los retos anteriores. Si cambian las entradas de los casos, los catálogos de origen o el motor, ejecutar `pnpm entrega:generar`, revisar los cinco PDF y verificar la entrega antes de publicar. La rama `main` mantiene el código y sus evidencias actuales.
