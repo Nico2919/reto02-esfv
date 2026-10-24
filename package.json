@@ -1,7 +1,7 @@
 {
   "name": "reto03-esfv",
   "private": true,
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Reto 03 ESFV: aplicación guiada para inversor, regulador MPPT y banco de baterías",
   "packageManager": "pnpm@11.25.0",
   "engines": { "node": ">=24" },

@@ -32,6 +32,8 @@ Revisa la cantidad de paneles, la potencia y cualquier aviso de espacio insufici
 2. Compara los equipos y pulsa **Elegir este equipo**. **Compatible** indica que pasan los criterios calculados. **No compatible** señala límites que fallan. **Requiere revisión** indica que faltan datos de ficha. Abre **Ver comprobaciones y ficha** para revisar el detalle.
 3. Revisa la cantidad de baterías y comprueba si la energía alcanza. Se muestran un día promedio del año y un día del mes con menos sol.
 
+En **Elige el equipo**, selecciona **Equipos comerciales** para ver modelos reales. **Solo inversores con baterías** oculta los reguladores de carga. Las fichas oficiales se abren directamente desde las tarjetas. Si tu proyecto guardado no muestra las nuevas marcas, pulsa **Actualizar equipos comerciales** y vuelve a guardar el proyecto. Se conservan las baterías, los equipos propios con otros IDs y las referencias académicas.
+
 Si hacen falta paneles, el botón indica exactamente cuántos se añadirán. Al aceptarlo, la aplicación comprueba otra vez los equipos; puede ser necesario cambiar de equipo. **Deshacer ampliación** vuelve al generador original. El dimensionamiento del paso Paneles solares se conserva como punto de partida.
 
 Elige otra opción si un equipo no es compatible. Cuando exista una conexión viable con los mismos paneles, puedes aplicar **Reorganizar**. Los ajustes de eficiencia, porcentaje utilizable de batería, voltajes y rango DC/AC están en **Ajustes avanzados del sistema**.

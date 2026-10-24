@@ -1,6 +1,6 @@
 # Validación Reto 03
 
-Versión 3.1.0: 16 pruebas numéricas/de regresión y 7 recorridos de navegador. El motor de cálculo conserva sus ecuaciones; la interfaz permite iniciar un proyecto vacío, probar el caso académico y consultar los detalles técnicos bajo demanda.
+Versión 3.2.0: 20 pruebas numéricas/de regresión y 8 recorridos de navegador. El motor de cálculo conserva sus ecuaciones; la interfaz permite iniciar un proyecto vacío, probar el caso académico y consultar los detalles técnicos bajo demanda.
 
 ## Matriz de cobertura
 
@@ -8,7 +8,7 @@ Versión 3.1.0: 16 pruebas numéricas/de regresión y 7 recorridos de navegador.
 |---|---|
 | 25 | Rama automática/manual; recorrido de interfaz off-grid/on-grid/híbrido |
 | 26 | Adaptador de cargas, perfil, generador y recurso; unidades Wh/W y ventana fija 06-18 |
-| 27 | Tres JSON externos, editor atómico; seis comerciales, seis TdR y dos tecnologías de batería |
+| 27 | Tres JSON externos, editor atómico; doce comerciales (nueve inversores y tres reguladores), seis TdR y dos tecnologías de batería |
 | 28 | Voc frío, Vmp caliente/frío, MPPT, arranque y Ns máximo; incluye Tmin=0 |
 | 29 | Imp/Isc por MPPT, reparto par/impar y salida al banco sin 1,25 |
 | 30 | DC/AC editable, recorte/sobredimensión; caso INV-A/B/C |
@@ -75,6 +75,8 @@ Aceptar ajuste conservando cadenas de cuatro añade cuatro módulos (4S2P, 4.400
 Son resultados derivados de las ecuaciones publicadas, no valores de referencia atribuidos al docente. Los parámetros no declarados y los supuestos se identifican en pantalla e informe.
 
 ## Fichas y alcance
+
+El [catálogo documentado](CATALOGO_INVERSORES.md) recoge las seis incorporaciones con hojas oficiales verificadas: GoodWe ES/XS, Growatt SPH, Solis híbrido, Deye SG04 y Sungrow SG3.0RS. Las pruebas comprueban límites eléctricos de los nuevos modelos, actualización sin perder referencias propias/académicas, conservación ante descarga fallida, filtros, enlaces visibles y guardado de la selección. No se hacen solicitudes externas desde las pruebas automáticas; las fichas se descargaron y sus tablas se revisaron durante esta actualización.
 
 - [Victron VE.Can 150/70 y 250/70-100](https://www.victronenergy.com/media/pg/Manual_SmartSolar_MPPT_150-70_up_to_250-100_VE.Can/es/technical-specifications.html): versiones Tr; corriente de salida/corto y tensión absoluta/operativa. Imp independiente ausente.
 - [Deye SUN-SG03LP1-EU, revisión 240722](https://www.deyeinverter.com/deyeinverter/2024/07/23/datasheet_sun-3.6-6k-sg03lp1_240722_en.pdf): 5 kW, 500 V, MPPT 150-425 V, arranque 125 V, Imp 13+13 A e Isc 17+17 A; banco 40-60 V, carga 120 A.

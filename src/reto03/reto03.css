@@ -36,6 +36,7 @@
 .r3-equipo.selected { border-color:#568d81; box-shadow:0 0 0 1px #568d81; }
 .r3-equipo-head { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; font-size:11px; font-weight:700; color:#66778b; }
 .reto03 .r3-equipo-kind { color:#697789; font-size:12px; margin-bottom:16px; }
+.r3-source-link { display:block; width:fit-content; max-width:100%; margin:0 0 16px; font-size:13px; }
 .r3-device-issues { font-size:13px; padding-left:18px; color:#8b3d2f; margin:14px 0; }
 .r3-device-issues li { margin:5px 0; }
 .reto03 summary { cursor:pointer; font-size:13px; font-weight:650; color:#3f596d; }

@@ -2,7 +2,7 @@
 
 Aplicación web para elegir el equipo de conversión y dimensionar el almacenamiento de un sistema solar fotovoltaico. Proyecto de Energía Solar Fotovoltaica, Universidad del Magdalena, periodo 2026-II.
 
-**Versión 3.1.0.** La entrega se centra en Reto 03. El registro de aparatos y el cálculo de paneles de los Retos 01 y 02 se mantienen integrados como datos de partida.
+**Versión 3.2.0.** La entrega se centra en Reto 03. El registro de aparatos y el cálculo de paneles de los Retos 01 y 02 se mantienen integrados como datos de partida.
 
 ## Probar la aplicación
 
@@ -35,6 +35,7 @@ La pantalla principal usa lenguaje sencillo. Las fórmulas, siglas, comprobacion
 | [Entrega del Reto 03](docs/ENTREGA_RETO03.md) | Alcance, demostración y archivos del proyecto |
 | [Validación RF-25 a RF-36](docs/VALIDACION_RETO03.md) | Matriz de requisitos y resultados numéricos esperados |
 | [Método de cálculo](docs/METODO_CALCULO.md) | Ecuaciones, unidades, supuestos y datos pendientes |
+| [Catálogo de inversores](docs/CATALOGO_INVERSORES.md) | Nueve modelos reales, límites por revisión y documentos oficiales |
 | [Historial de actualizaciones](CHANGELOG.md) | Cambios por versión |
 
 ## Verificar una actualización
@@ -56,7 +57,7 @@ pnpm test:ui
 
 GitHub Actions ejecuta las pruebas, lint y build al actualizar `main`, las ramas `feat/` y las solicitudes de integración. Su resultado se consulta en **Actions**. Las capturas y PDF de pruebas quedan en `tmp/qa/` localmente; no forman parte del código fuente.
 
-La validación local de esta versión incluye 16 pruebas numéricas/de regresión y 7 recorridos de interfaz.
+La validación local de esta versión incluye 20 pruebas numéricas/de regresión y 8 recorridos de interfaz.
 
 ## Organización
 
@@ -71,6 +72,8 @@ tests-ui/           Recorridos reales en navegador
 .github/workflows/  Validación automática de actualizaciones
 ```
 
-Los catálogos comerciales incluyen fichas y revisiones de Victron, Deye y Solis. CTRL-A/B/C, INV-A/B/C y las baterías AGM/LFP del caso de prueba son **referencias académicas**, separadas de productos comerciales. Los catálogos pueden editarse desde la aplicación. El proyecto JSON v3 conserva las entradas y catálogos; también se pueden abrir archivos de los Retos 01/02.
+El catálogo incluye **nueve inversores reales** de Deye, GoodWe, Growatt, Solis y Sungrow: cinco con baterías y cuatro de red, más tres reguladores Victron. Cada tarjeta comercial abre su documento oficial. En **Elige el equipo** puedes seleccionar el catálogo comercial, filtrar inversores/reguladores y pulsar **Actualizar equipos comerciales** para incorporar las novedades a un proyecto anterior. [Modelos, revisiones y fichas](docs/CATALOGO_INVERSORES.md).
+
+CTRL-A/B/C, INV-A/B/C y las baterías AGM/LFP del caso de prueba son **referencias académicas**, separadas de productos comerciales. Los catálogos pueden editarse desde la aplicación. El proyecto JSON v3 conserva las entradas y catálogos; también se pueden abrir archivos de los Retos 01/02.
 
 Se conserva la dirección `Nico2919/reto02-esfv` para mantener la continuidad del repositorio. El nombre de la aplicación, documentación e historial identifican la entrega actual como **Reto 03**. Desarrollo asistido por IA (Codex), documentado para revisión y sustentación.

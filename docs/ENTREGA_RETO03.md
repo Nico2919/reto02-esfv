@@ -4,7 +4,7 @@
 
 Dimensionamiento del regulador/inversor MPPT y banco de baterías. Una sola aplicación conserva las cargas y los paneles de los Retos 01/02 e incorpora las dos ramas del Reto 03. El alcance funcional y los resultados esperados se documentan en [VALIDACION_RETO03.md](VALIDACION_RETO03.md).
 
-La versión 3.1.0 presenta un recorrido guiado. La pantalla inicial no impone cargas domésticas de demostración: permite empezar desde cero, abrir un proyecto existente o probar el caso académico.
+La versión 3.2.0 presenta un recorrido guiado y nueve inversores comerciales con documentación oficial, descritos en [CATALOGO_INVERSORES.md](CATALOGO_INVERSORES.md). La pantalla inicial permite empezar desde cero, abrir un proyecto existente o probar el caso académico.
 
 ## Demostración sugerida
 
@@ -16,7 +16,7 @@ La versión 3.1.0 presenta un recorrido guiado. La pantalla inicial no impone ca
 6. Volver a baterías, añadir paneles para el escenario de menor sol y mostrar que se revisan otra vez los equipos. Deshacer la ampliación.
 7. Guardar el JSON, cambiar un dato y abrirlo de nuevo. Descargar el informe PDF.
 
-La demostración usa referencias TdR, identificadas como académicas. El catálogo comercial se selecciona en Ajustes avanzados del sistema. Los datos que no estén declarados en las fichas permanecen como pendientes; no se presentan como aprobados.
+La demostración usa referencias TdR, identificadas como académicas. El catálogo comercial se selecciona en **Elige el equipo**. Allí se pueden actualizar los equipos de proyectos anteriores y filtrar inversores/reguladores. Los datos que no estén declarados en las fichas permanecen como pendientes; no se presentan como aprobados.
 
 ## Archivos para presentar
 

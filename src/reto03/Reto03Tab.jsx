@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BatteryCharging, PlugZap, ArrowRight, Settings2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { formato as f } from './calculos.js';
+import { incorporarComerciales } from './catalogos.js';
 import { avisoAmigable, criterioAmigable, errorAmigable, estadoEquipo } from './textos.js';
 import './reto03.css';
 
@@ -16,7 +17,7 @@ function Metrica({ label, value, ayuda }) {
 }
 function Fuente({ equipo }) {
   return /^https:\/\//.test(equipo.fuente)
-    ? <a href={equipo.fuente} target="_blank" rel="noreferrer">Consultar ficha del fabricante</a>
+    ? <a className="r3-source-link" href={equipo.fuente} target="_blank" rel="noreferrer" aria-label={`Documento oficial de ${equipo.fabricante} ${equipo.modelo}`}>{equipo.tipoFuente === 'ficha' ? 'Hoja de datos (PDF)' : 'Documento del fabricante'}</a>
     : <small>{equipo.fuente}</small>;
 }
 const porcentaje = v => typeof v === 'number' ? v * 100 : '';
@@ -29,7 +30,8 @@ function Equipo({ evaluacion: e, seleccionado, onElegir, onReorganizar }) {
       <span className={`r3-badge ${e.fallos.length ? 'bad' : e.pendientes.length ? 'warn' : 'ok'}`}>{estadoEquipo(e)}</span>
     </div>
     <h4>{e.equipo.modelo.replace(/\s+\([^)]*\)$/, '')}</h4>
-    <p className="r3-equipo-kind">{e.equipo.origen === 'tdr' ? 'Referencia académica' : 'Equipo comercial'} · {e.equipo.pac ? `${f(e.equipo.pac / 1000)} kW de salida` : `Regulador de ${e.equipo.outMax} A`}</p>
+    <p className="r3-equipo-kind">{e.equipo.origen === 'tdr' ? 'Referencia académica' : e.equipo.tipo === 'regulador' ? 'Regulador de carga' : e.equipo.rama === 'con' ? 'Inversor con baterías' : 'Inversor de red'} · {e.equipo.pac ? `${f(e.equipo.pac / 1000)} kW de salida` : `${e.equipo.outMax} A`}</p>
+    {e.equipo.origen === 'comercial' && <Fuente equipo={e.equipo} />}
     <button className={seleccionado ? 'r3-selection' : 'r3-primary'} onClick={onElegir} aria-pressed={seleccionado}>
       {seleccionado ? <><CheckCircle2 size={15} /> Equipo seleccionado</> : 'Elegir este equipo'}
     </button>
@@ -41,13 +43,14 @@ function Equipo({ evaluacion: e, seleccionado, onElegir, onReorganizar }) {
     )}</div>}
     <details className="r3-details"><summary>Ver comprobaciones y ficha</summary>
       <p>Modelo y revisión: {e.equipo.modelo}.</p>
+      {e.equipo.revision && <p>Ficha: {e.equipo.revision}. Consulta: {e.equipo.fechaConsulta}.</p>}
       <p>Máximo de paneles en serie: <b>{e.nsMax}</b>. Grupos por entrada MPPT: [{e.distribucion.join(', ')}].{e.ratio != null && <> Relación paneles/inversor (DC/AC): <b>{f(e.ratio)}</b>.</>}</p>
       <div className="r3-scroll"><table><thead><tr><th>Comprobación</th><th>Valor calculado</th><th>Límite</th><th>Resultado</th></tr></thead>
         <tbody>{e.criterios.map(k => <tr key={k.nombre}><td>{k.nombre}{k.nota && <small>{k.nota}</small>}</td>
           <td>{f(k.valor)} {k.unidad}</td><td>{typeof k.limite === 'string' ? k.limite : f(k.limite)} {k.unidad}</td>
           <td className={k.cumple === false ? 'r3-fail' : ''}>{resultadoCriterio(k.cumple)}</td></tr>)}</tbody>
       </table></div>
-      {e.avisos.map((v, i) => <p className="r3-note" key={i}>{v}</p>)}<Fuente equipo={e.equipo} />
+      {e.avisos.map((v, i) => <p className="r3-note" key={i}>{v}</p>)}{e.equipo.origen !== 'comercial' && <Fuente equipo={e.equipo} />}
     </details>
   </article>;
 }
@@ -55,9 +58,31 @@ function Equipo({ evaluacion: e, seleccionado, onElegir, onReorganizar }) {
 export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogos, setCatalogos, resultado: r, errorCatalogo, onIr, onEjemplo }) {
   const [editor, setEditor] = useState(null);
   const [editorError, setEditorError] = useState('');
+  const [tipoEquipo, setTipoEquipo] = useState('todos');
+  const [actualizando, setActualizando] = useState(false);
+  const [mensajeCatalogo, setMensajeCatalogo] = useState('');
+  const [errorActualizacion, setErrorActualizacion] = useState('');
   const patch = p => setConfig(v => ({ ...v, ...p }));
   const conBaterias = r.rama === 'con';
   const equipoKey = conBaterias ? 'equipoCon' : 'equipoSin';
+  const cambiarCatalogo = origen => {
+    const primero = rama => catalogos.conversion.find(x => x.origen === origen && x.rama === rama && x.tipo !== 'regulador') ?? catalogos.conversion.find(x => x.origen === origen && x.rama === rama);
+    patch({ catalogo: origen, equipoCon: primero('con')?.id, equipoSin: primero('sin')?.id });
+    setTipoEquipo('todos');
+  };
+  const actualizarComerciales = async () => {
+    setActualizando(true); setMensajeCatalogo(''); setErrorActualizacion('');
+    try {
+      const respuesta = await fetch('./catalogo_conversion.json', { cache: 'no-store' });
+      if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+      const nuevos = await respuesta.json();
+      setCatalogos(incorporarComerciales(catalogos, nuevos));
+      setMensajeCatalogo('Equipos comerciales actualizados. Puedes elegirlos en el catálogo.');
+    } catch (e) { setErrorActualizacion(`No se pudo actualizar el catálogo: ${e.message}`); }
+    finally { setActualizando(false); }
+  };
+  const equiposVisibles = r.equipos?.filter(e => !conBaterias || c.catalogo !== 'comercial' || tipoEquipo === 'todos' || (tipoEquipo === 'regulador' ? e.equipo.tipo === 'regulador' : e.equipo.tipo !== 'regulador'))
+    .toSorted((a, b) => Number(a.equipo.tipo === 'regulador') - Number(b.equipo.tipo === 'regulador')) ?? [];
   const cambiarBateria = id => {
     const b = catalogos.baterias.find(x => x.id === id);
     patch({ bateriaId: id, vBanco: b.maxSerie === 1 ? b.voltaje : Math.max(1, Math.round(c.vBanco / b.voltaje)) * b.voltaje, dod: b.dod, etaBat: b.eficiencia });
@@ -122,10 +147,6 @@ export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogo
       <details className="r3-details r3-advanced"><summary><Settings2 size={15} /> Ajustes avanzados del sistema</summary>
         <div className="r3-fields">
           <Campo label="Eficiencia del inversor (%)" value={porcentaje(c.etaInv)} min={0.01} max={100} onChange={v => patch({ etaInv: fraccion(v) })} />
-          <label className="r3-field"><span>Equipos que quieres comparar</span><select aria-label="Catálogo de equipos" value={c.catalogo} onChange={e => {
-            const origen = e.target.value;
-            patch({ catalogo: origen, equipoCon: catalogos.conversion.find(x => x.origen === origen && x.rama === 'con')?.id, equipoSin: catalogos.conversion.find(x => x.origen === origen && x.rama === 'sin')?.id });
-          }}><option value="comercial">Equipos comerciales</option><option value="tdr">Referencias del caso de prueba</option></select></label>
           <Campo label="Relación paneles/inversor mínima (DC/AC)" value={c.dcAcMin} min={0.01} onChange={v => patch({ dcAcMin: v })} />
           <Campo label="Relación paneles/inversor máxima (DC/AC)" value={c.dcAcMax} min={c.dcAcMin} onChange={v => patch({ dcAcMax: v })} />
           {conBaterias && <>
@@ -143,7 +164,20 @@ export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogo
       <div className="r3-actions"><button onClick={() => patch({ ns: null })}>Restablecer conexión de paneles</button><button onClick={() => onIr('generador')}>Revisar paneles solares</button></div>
     </section> : <>
       <section><div className="r3-step-title"><span>2</span><div><h3>Elige el equipo</h3><p>Compara las opciones y selecciona la que vas a revisar.</p></div></div>
-        <div className="r3-equipment-grid">{r.equipos.map(e => <Equipo key={e.equipo.id} evaluacion={e} seleccionado={e.equipo.id === r.seleccionado?.equipo.id}
+        <div className="r3-fields">
+          <label className="r3-field"><span>Equipos que quieres comparar</span><select aria-label="Catálogo de equipos" value={c.catalogo} onChange={e => cambiarCatalogo(e.target.value)}>
+            <option value="comercial">Equipos comerciales</option><option value="tdr">Referencias del caso de prueba</option>
+          </select></label>
+          {conBaterias && c.catalogo === 'comercial' && <label className="r3-field"><span>Mostrar equipos</span><select aria-label="Mostrar equipos" value={tipoEquipo} onChange={e => setTipoEquipo(e.target.value)}>
+            <option value="todos">Inversores y reguladores</option><option value="inversor">Solo inversores con baterías</option><option value="regulador">Solo reguladores de carga</option>
+          </select></label>}
+        </div>
+        <div className="r3-actions"><button onClick={actualizarComerciales} disabled={actualizando}>{actualizando ? 'Actualizando equipos…' : 'Actualizar equipos comerciales'}</button>
+          <small>{r.equipos.filter(e => e.equipo.tipo !== 'regulador').length} inversores{conBaterias ? ` y ${r.equipos.filter(e => e.equipo.tipo === 'regulador').length} reguladores` : ''} en este catálogo</small>
+        </div>
+        {mensajeCatalogo && <p role="status">{mensajeCatalogo}</p>}
+        {errorActualizacion && <p role="alert" className="r3-error">{errorActualizacion}</p>}
+        <div className="r3-equipment-grid">{equiposVisibles.map(e => <Equipo key={e.equipo.id} evaluacion={e} seleccionado={e.equipo.id === r.seleccionado?.equipo.id}
           onElegir={() => patch({ [equipoKey]: e.equipo.id })} onReorganizar={ns => patch({ ns, [equipoKey]: e.equipo.id })} />)}</div>
         {r.seleccionado?.equipo.tipo === 'regulador' && <p className="r3-note">El regulador carga las baterías. Para alimentar aparatos de corriente alterna también necesitas un inversor independiente.</p>}
         <details className="r3-details"><summary>Ajustar la conexión de los paneles</summary>

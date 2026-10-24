@@ -18,7 +18,7 @@ test('RF-26: adaptador conserva unidades, perfil, coeficientes y ventana fija 06
   assert.ok(calc({}, {edWh:9000}).banco.capacidadWh > calc().banco.capacidadWh);
 });
 test('RF-27: catalogos externos validos, origen separado y datos corruptos rechazados', () => {
-  validarCatalogos(catalogos); assert.equal(catalogos.conversion.filter(e=>e.origen==='comercial').length,6);
+  validarCatalogos(catalogos); assert.ok(catalogos.conversion.filter(e=>e.origen==='comercial' && e.tipo !== 'regulador').length >= 9);
   for (const patch of [{vMax:-1},{mppts:0},{impMax:'16'},{mpptMin:900},{startOffset:-5}]) {
     const bad = structuredClone(catalogos); Object.assign(bad.conversion[0],patch); assert.throws(()=>validarCatalogos(bad));
   }
