@@ -1,16 +1,19 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceDot, BarChart, Bar,
 } from "recharts";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import Reto03Tab from './reto03/Reto03Tab.jsx';
+import { inicialReto03, heredarReto03, calcularReto03, validarCatalogos } from './reto03/calculos.js';
+import { crearProyecto, leerProyecto } from './reto03/proyecto.js';
+import { construirInforme } from './reto03/informe.js';
+import { calcularGenerador, evaluarCatalogo } from './reto02/generador.js';
 import {
   Sun, Moon, Sunrise, Plus, Pencil, Trash2, Eraser, Upload, Save,
   FolderOpen, RotateCcw, FileDown, CheckCircle2, AlertTriangle, X,
   Gauge, Zap, BatteryCharging, CalendarDays, Coins, Clock, ListChecks,
-  MapPin, Wifi, WifiOff, Database, Grid3x3, Ruler, Settings2, PanelsTopLeft,
+  MapPin, Wifi, WifiOff, Database, Grid3x3, Settings2, PanelsTopLeft,
 } from "lucide-react";
 
 /* ============================================================
@@ -145,6 +148,31 @@ const CARGAS_DEMO = [
 
 export default function Reto01Web() {
   const [tab, setTab] = useState("proyecto");
+  const [reto03, setReto03] = useState(inicialReto03);
+  const [catalogosReto03, setCatalogosReto03] = useState({ conversion: [], baterias: [] });
+  const [errorCatalogoReto03, setErrorCatalogoReto03] = useState('Cargando catalogos externos...');
+  const proyectoRestaurado = useRef(false);
+  const catalogosRestaurados = useRef(false);
+
+  function actualizarCatalogosReto03(datos) {
+    validarCatalogos(datos);
+    catalogosRestaurados.current = true;
+    setCatalogosReto03(datos);
+    setErrorCatalogoReto03('');
+  }
+
+  useEffect(() => {
+    let activo = true;
+    Promise.all(['catalogo_conversion.json', 'catalogo_conversion_tdr.json', 'catalogo_baterias.json'].map(async nombre => {
+      const resp = await fetch(`./${nombre}`);
+      if (!resp.ok) throw new Error(`${nombre}: HTTP ${resp.status}`);
+      return resp.json();
+    })).then(([comercial, tdr, baterias]) => {
+      const datos = validarCatalogos({ conversion: [...comercial, ...tdr], baterias });
+      if (activo && !catalogosRestaurados.current) actualizarCatalogosReto03(datos);
+    }).catch(e => { if (activo && !catalogosRestaurados.current) setErrorCatalogoReto03(`No se pudieron cargar catalogos: ${e.message}. Importe JSON desde la pestaña 5.`); });
+    return () => { activo = false; };
+  }, []);
 
   const [proyecto, setProyecto] = useState({
     nombre: "Linea base ESFV",
@@ -382,7 +410,7 @@ export default function Reto01Web() {
                 if (nomP.includes("electro") && Number.isFinite(valP)) factorElectro = valP;
                 else if (nomP.includes("fuerza") && Number.isFinite(valP)) factorFuerza = valP;
               }
-            } catch (_) { }
+            } catch { /* Optional source: retain local fallback. */ }
           }
         } else if (idxOriginal) {
           hojaUsada = idxOriginal;
@@ -411,7 +439,7 @@ export default function Reto01Web() {
             factorFuerza = Number(factores?.[1]?.[1]);
             if (!Number.isFinite(factorElectro)) factorElectro = null;
             if (!Number.isFinite(factorFuerza)) factorFuerza = null;
-          } catch (_) { }
+          } catch { /* Optional source: retain local fallback. */ }
         } else {
           throw new Error("Formato de Excel no reconocido. Se esperaba una hoja 'LINEA_BASE_MATLAB' o 'LINEA BASE'.");
         }
@@ -438,14 +466,7 @@ export default function Reto01Web() {
   }
 
   function onGuardarProyecto() {
-    const datos = {
-      _tipo: "Reto01-ProyectoESFV", version: 2,
-      proyecto, criterio,
-      cargas: cargas.map(({ id, item, carga, cantidad, potenciaUnitaria, mask }) => (
-        { id, item, carga, cantidad, potenciaUnitaria, mask }
-      )),
-      generador: generadorState,
-    };
+    const datos = crearProyecto({ proyecto, criterio, cargas, generador: generadorState, baseSolar, reto03, catalogosReto03 });
     const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -465,14 +486,15 @@ export default function Reto01Web() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       try {
-        const datos = JSON.parse(ev.target.result);
-        if (!datos || datos._tipo !== "Reto01-ProyectoESFV") {
-          throw new Error("El archivo no corresponde a un proyecto valido del Reto 01/02.");
-        }
+        const datos = leerProyecto(JSON.parse(ev.target.result));
+        proyectoRestaurado.current = true;
         setProyecto(datos.proyecto);
         setCriterio(datos.criterio || { inicio: 6, fin: 18 });
         setCargas(datos.cargas || []);
-        if (datos.generador) setGeneradorState((g) => ({ ...g, ...datos.generador }));
+        setGeneradorState({ ...generadorInicial(), ...datos.generador });
+        setBaseSolar(datos.baseSolar || BASE_DATOS_SOLAR);
+        setReto03(datos.reto03);
+        if (datos.catalogosReto03) { catalogosRestaurados.current = true; actualizarCatalogosReto03(datos.catalogosReto03); }
         limpiarFormulario();
         setStatus(`Proyecto cargado: ${file.name} (RF-13: datos heredados sin reingreso).`);
       } catch (err) {
@@ -486,7 +508,7 @@ export default function Reto01Web() {
      RETO 02 · GENERADOR FOTOVOLTAICO (RF-13 a RF-24)
      ================================================================ */
 
-  const [generadorState, setGeneradorState] = useState({
+  const generadorInicial = () => ({
     modoRecurso: "local",            
     sitioId: "nazareth",
     lat: 12.18, lon: -71.28,
@@ -505,6 +527,7 @@ export default function Reto01Web() {
     moduloForzado: false,
     catalogo: CATALOGO_INICIAL(),
   });
+  const [generadorState, setGeneradorState] = useState(generadorInicial);
 
   function setGen(patch) {
     setGeneradorState((g) => (typeof patch === "function" ? patch(g) : { ...g, ...patch }));
@@ -525,22 +548,22 @@ export default function Reto01Web() {
         const r = await fetch("./catalogo_modulos.json");
         if (r.ok) {
           const json = await r.json();
-          if (Array.isArray(json) && json.length > 0 && activo) {
+          if (Array.isArray(json) && json.length > 0 && activo && !proyectoRestaurado.current) {
             setGen({ catalogo: json });
             mensajes.push(`catalogo_modulos.json (${json.length} referencias)`);
           }
         }
-      } catch (_) { }
+      } catch { /* Optional source: retain local fallback. */ }
       try {
         const r = await fetch("./base_datos_solar.json");
         if (r.ok) {
           const json = await r.json();
-          if (Array.isArray(json) && json.length > 0 && activo) {
+          if (Array.isArray(json) && json.length > 0 && activo && !proyectoRestaurado.current) {
             setBaseSolar(json);
             mensajes.push(`base_datos_solar.json (${json.length} sitios)`);
           }
         }
-      } catch (_) { }
+      } catch { /* Optional source: retain local fallback. */ }
       if (activo && mensajes.length > 0) {
         setFuenteDatosInfo(`Cargado desde archivo externo: ${mensajes.join(" y ")}.`);
       } else if (activo) {
@@ -695,6 +718,9 @@ export default function Reto01Web() {
       (m) => m.id === (generadorState.moduloForzado ? generadorState.moduloSeleccionadoId : dimension.mejorOpcion?.id)
   ) || generadorState.catalogo[0];
 
+  const heredadosReto03 = heredarReto03({ resultados, proyecto, dimension, modulo: moduloActivo, gen: generadorState, hspAnual, hspCritico, sitio });
+  const resultadoReto03 = calcularReto03(heredadosReto03, reto03, catalogosReto03);
+
   /* ---------------------- Informe ejecutivo (RF-11 / RF-24) ---------------------- */
 
   function onGenerarInforme() {
@@ -777,6 +803,10 @@ export default function Reto01Web() {
       </svg>
 
       ${seccionGenerador}
+      <div class="section-title">Conversion y banco (Reto 03)</div>
+      <div class="sub">Rama: ${resultadoReto03.rama === 'con' ? 'con almacenamiento' : 'sin almacenamiento'}.
+      ${escapeHtml(resultadoReto03.errores.length ? resultadoReto03.errores.join('; ') :
+        `Equipo: ${resultadoReto03.seleccionado?.equipo.modelo ?? 'sin seleccionar'}; ${resultadoReto03.seleccionado?.estado ?? 'pendiente'}. Arreglo efectivo: ${resultadoReto03.arreglo.ns}S x ${resultadoReto03.arreglo.np}P. Banco: ${resultadoReto03.banco ? (resultadoReto03.banco.wh / 1000).toFixed(2) + ' kWh' : 'no aplica'}. Margen anual/critico: ${resultadoReto03.balance.anual.margenPct.toFixed(2)}% / ${resultadoReto03.balance.critico.margenPct.toFixed(2)}%. Alertas: ${resultadoReto03.avisos.join('; ')}`)}</div>
 
       <div class="section-title">Cuadro de cargas (${cargasCalc.length})</div>
       <table><thead><tr><th>Item</th><th>Carga</th><th>Cant.</th><th>P. unit [W]</th>
@@ -799,97 +829,9 @@ export default function Reto01Web() {
   }
 
   function onGenerarInformePDF() {
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const pageW = doc.internal.pageSize.getWidth();
-    const marginX = 12;
-    let y = 14;
-
-    doc.setFillColor(11, 18, 32);
-    doc.rect(0, 0, pageW, 20, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(13); doc.setFont(undefined, "bold");
-    doc.text("RETO 01-02 · Informe ejecutivo del requerimiento energetico y generador FV", marginX, 9);
-    doc.setFontSize(8.5); doc.setFont(undefined, "normal");
-    doc.text(`Proyecto: ${proyecto.nombre} | Fecha: ${proyecto.fecha} | Tipo: ${proyecto.tipoApp}`, marginX, 15);
-    y = 26;
-
-    doc.setTextColor(16, 25, 43);
-
-    doc.setFontSize(10.5); doc.setFont(undefined, "bold");
-    doc.text("Indicadores de consumo (Reto 01)", marginX, y);
-    y += 2;
-    autoTable(doc, {
-      startY: y, margin: { left: marginX, right: marginX }, theme: "grid",
-      styles: { fontSize: 8, cellPadding: 1.6 },
-      headStyles: { fillColor: [245, 166, 35], textColor: 20 },
-      head: [["Potencia instalada", "Demanda maxima", "Energia diaria", "Energia mensual", "Costo mensual", "Hora pico"]],
-      body: [[
-        `${(resultados.pInst / 1000).toFixed(2)} kW`,
-        `${(resultados.pMax / 1000).toFixed(2)} kW`,
-        `${resultados.energiaDia.toFixed(2)} kWh`,
-        `${resultados.energiaMes.toFixed(2)} kWh`,
-        `$ ${Math.round(resultados.costoMes)}`,
-        `${pad2(resultados.horaPico)}:00`,
-      ]],
-    });
-    y = doc.lastAutoTable.finalY + 6;
-
-    const d = dimension;
-    doc.setFontSize(10.5); doc.setFont(undefined, "bold");
-    doc.text("Generador fotovoltaico (Reto 02)", marginX, y);
-    y += 2;
-    doc.setFontSize(8); doc.setFont(undefined, "normal");
-    doc.text(
-      `Sitio: ${sitio.nombre} (${sitio.lat}, ${sitio.lon}) · Fuente: ${generadorState.modoRecurso === "api" && generadorState.apiStatus === "ok" ? "NASA POWER (consulta en vivo)" : sitio.fuente.slice(0, 90)}`,
-      marginX, y + 4, { maxWidth: pageW - marginX * 2 }
-    );
-    doc.text(
-      `Criterio: ${generadorState.criterioDimension === "anual" ? "promedio anual" : "mes critico"} (HSP=${hspUsado.toFixed(2)} kWh/m²·dia) · PR=${generadorState.pr} · Modulo: ${moduloActivo.fabricante} ${moduloActivo.modelo} (${gen_criterioTexto()})`,
-      marginX, y + 8
-    );
-    y += 11;
-
-    autoTable(doc, {
-      startY: y, margin: { left: marginX, right: marginX }, theme: "grid",
-      styles: { fontSize: 8, cellPadding: 1.6 },
-      headStyles: { fillColor: [16, 25, 43], textColor: 255 },
-      head: [["Ppico", "Modulos", "P. instalada", "Excedente", "Config.", "Voc gen (Tmin)", "I diseño", "Area gen"]],
-      body: [[
-        `${d.ppico.toFixed(2)} kWp`,
-        `${d.nTotal} × ${moduloActivo.potencia} Wp`,
-        `${(d.pInstalada / 1000).toFixed(2)} kWp`,
-        `${d.excedentePct >= 0 ? "+" : ""}${d.excedentePct.toFixed(1)} %`,
-        `${d.nParalelo} × ${d.nSerie} serie`,
-        `${d.vocGen.toFixed(1)} V`,
-        `${d.iDiseno.toFixed(1)} A`,
-        `${d.areaGen.toFixed(2)} m²${d.cabeEnArea ? "" : " (!)"}`,
-      ]],
-    });
-    y = doc.lastAutoTable.finalY + 6;
-
-    doc.setFontSize(10.5); doc.setFont(undefined, "bold");
-    doc.text(`Cuadro de cargas (${cargasCalc.length})`, marginX, y);
-    y += 2;
-    autoTable(doc, {
-      startY: y, margin: { left: marginX, right: marginX }, theme: "striped",
-      styles: { fontSize: 7.5, cellPadding: 1.4 },
-      headStyles: { fillColor: [90, 100, 114], textColor: 255 },
-      head: [["Item", "Carga", "Cant.", "P.unit [W]", "P.total [W]", "Clasificacion", "Horario"]],
-      body: cargasCalc.map((c) => [c.item, c.carga, c.cantidad, c.potenciaUnitaria, c.potenciaTotal, c.clasificacion, c.horarioTexto]),
-    });
-
-    doc.setFontSize(7); doc.setTextColor(140, 147, 160);
-    doc.text(
-      `Generado automaticamente · ${new Date().toLocaleString()} · Dias de operacion/mes: ${proyecto.diasMes} · CU: $${proyecto.cu}/kWh.`,
-      marginX, doc.internal.pageSize.getHeight() - 8
-    );
-
+    const doc = construirInforme({ proyecto, resultados, h: heredadosReto03, config: reto03, resultado: resultadoReto03 });
     doc.save(`Informe_${(proyecto.nombre || "proyecto").trim().replace(/\s+/g, "_")}.pdf`);
-    setStatus("Informe ejecutivo (PDF) generado y descargado.");
-  }
-
-  function gen_criterioTexto() {
-    return generadorState.moduloForzado ? "seleccion forzada" : "menor excedente, automatico";
+    setStatus("Informe ejecutivo PDF Reto 01+02+03 generado (una pagina).");
   }
 
   function escapeHtml(s) {
@@ -908,7 +850,7 @@ export default function Reto01Web() {
         <div style={{ position: "relative", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: ".01em" }}>
-              RETO 01-02 · Requerimiento energetico y generador FV
+              RETO 01-02-03 · Dimensionamiento ESFV
             </div>
             <div style={{ fontSize: 12, color: "#9FB0C9", marginTop: 2 }}>
               Version web · React · misma aplicacion, sin reingreso de datos (RF-13)
@@ -925,9 +867,13 @@ export default function Reto01Web() {
         <TabButton n="2" label="Cuadro de cargas" active={tab === "cargas"} onClick={() => setTab("cargas")} />
         <TabButton n="3" label="Resultados" active={tab === "resultados"} onClick={() => setTab("resultados")} />
         <TabButton n="4" label="Generador FV" active={tab === "generador"} onClick={() => setTab("generador")} />
+        <TabButton n="5" label="MPPT y baterías" active={tab === "reto03"} onClick={() => setTab("reto03")} />
       </div>
 
       <div style={{ padding: 24 }}>
+        {tab === "reto03" && <Reto03Tab heredados={heredadosReto03} config={reto03} setConfig={setReto03}
+          catalogos={catalogosReto03} setCatalogos={actualizarCatalogosReto03} resultado={resultadoReto03}
+          errorCatalogo={errorCatalogoReto03} onGuardar={onGuardarProyecto} onCargar={onCargarProyectoClick} onPdf={onGenerarInformePDF} />}
         {tab === "proyecto" && (
           <ProyectoTab proyecto={proyecto} setProyecto={setProyecto} criterio={criterio}
             onValidar={() => {
@@ -1114,7 +1060,7 @@ function rbPromedioMensual(latDeg, tiltDeg, n, azimutDeg) {
   return den > 0 ? num / den : 1;
 }
 
-function transponerATiltoMensual({ lat, tiltDeg, azimutDeg, ghi, dni, dif, rho = 0.2 }) {
+function transponerATiltoMensual({ lat, tiltDeg, azimutDeg, ghi, dif, rho = 0.2 }) {
   const beta = toRad(tiltDeg);
   return ghi.map((H, i) => {
     const n = DIAS_REPRESENTATIVOS[i];
@@ -1124,81 +1070,6 @@ function transponerATiltoMensual({ lat, tiltDeg, azimutDeg, ghi, dni, dif, rho =
     const HT = Hb * Rb + Hd * (1 + Math.cos(beta)) / 2 + H * rho * (1 - Math.cos(beta)) / 2;
     return Math.max(0, HT);
   });
-}
-
-function evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo }) {
-  const ppico = hsp > 0 && pr > 0 ? ed / (hsp * pr) : 0;
-
-  const opciones = (catalogo || []).map((m) => {
-    const vocM = m.voc * (1 + (m.beta / 100) * (tMin - 25));
-    if (vocM > vMaxSistema) {
-      return { id: m.id, nombre: `${m.fabricante} ${m.modelo}`, descartado: true,
-        motivo: `Voc a Tmin (${vocM.toFixed(1)} V) supera la tensión máxima (${vMaxSistema} V).` };
-    }
-    
-    const nsMax = Math.floor(vMaxSistema / vocM);
-    if (nsMax < 1) {
-       return { id: m.id, nombre: `${m.fabricante} ${m.modelo}`, descartado: true,
-        motivo: `Inviable: No cabe ni 1 módulo bajo ${vMaxSistema}V a Tmin.` };
-    }
-    
-    const nNec = Math.max(1, Math.ceil((ppico * 1000) / m.potencia));
-    const ns = Math.min(nNec, nsMax);
-    const np = Math.ceil(nNec / ns);
-    const nt = ns * np;
-    const pInst = nt * m.potencia;
-    const exc = ppico > 0 ? ((pInst / 1000 - ppico) / ppico) * 100 : 0;
-    return { id: m.id, nombre: `${m.fabricante} ${m.modelo}`, nTotal: nt, pInst, excedentePct: exc, descartado: false };
-  });
-
-  const viables = opciones.filter((o) => !o.descartado);
-  const mejorOpcion = viables.length > 0 ? viables.slice().sort((a, b) => Math.abs(a.excedentePct) - Math.abs(b.excedentePct))[0] : null;
-
-  return { ppico, opciones, mejorOpcion, hayViables: viables.length > 0 };
-}
-
-function calcularGenerador({ ed, hsp, pr, modulo, vMaxSistema, tMin, tOp, areaDisponible, catalogo }) {
-  const { opciones, mejorOpcion, hayViables } = evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo });
-  
-  const errores = [];
-  if (hsp <= 0) errores.push("El recurso solar (HSP) debe ser mayor que cero.");
-  if (pr <= 0 || pr > 1) errores.push("El factor de desempeño (PR) debe estar entre 0.01 y 1.00.");
-  if (vMaxSistema <= 0) errores.push("La tensión máxima del sistema debe ser mayor que 0 V.");
-  if (areaDisponible <= 0) errores.push("El área disponible debe ser declarada (> 0 m²).");
-  if (tMin < -40 || tMin > 60) errores.push("Temperatura mínima fuera de un rango terrestre razonable (-40 a 60 °C).");
-  if (tOp < -20 || tOp > 85) errores.push("Temperatura de operación fuera de rango razonable (-20 a 85 °C).");
-  if (!hayViables) errores.push("Ningún módulo del catálogo es viable bajo las restricciones de tensión declaradas.");
-
-  if (errores.length > 0) return { bloqueado: true, errores, opciones, mejorOpcion };
-
-  const ppico = ed / (hsp * pr); 
-  const vocModTmin = modulo.voc * (1 + (modulo.beta / 100) * (tMin - 25));
-  const nSerieMax = Math.floor(vMaxSistema / vocModTmin);
-
-  if (nSerieMax < 1) {
-     return { bloqueado: true, errores: [`El módulo forzado manualmente (${modulo.modelo}) NO ES VIABLE. Su Voc a Tmin (${vocModTmin.toFixed(1)} V) supera el límite de ${vMaxSistema} V.`], opciones, mejorOpcion };
-  }
-
-  const nNecesarios = Math.max(1, Math.ceil((ppico * 1000) / modulo.potencia));
-  const nSerie = Math.min(nNecesarios, nSerieMax);
-  const nParalelo = Math.ceil(nNecesarios / nSerie);
-  const nTotal = nSerie * nParalelo;
-  const pInstalada = nTotal * modulo.potencia; 
-  const excedentePct = ppico > 0 ? ((pInstalada / 1000 - ppico) / ppico) * 100 : 0;
-  const vocGen = nSerie * vocModTmin;
-  const tCelda = tOp + ((modulo.noct - 20) / 800) * 1000;
-  const vmpGenOperacion = nSerie * modulo.vmp * (1 + (modulo.beta / 100) * (tCelda - 25));
-  const iscGen = nParalelo * modulo.isc;
-  const iDiseno = 1.25 * 1.25 * iscGen; 
-  const areaGen = nTotal * modulo.area;
-  const energiaGenerador = (pInstalada / 1000) * hsp * pr;
-
-  return {
-    bloqueado: false, errores: [],
-    ppico, nSerieMax, nNecesarios, nSerie, nParalelo, nTotal, pInstalada, excedentePct,
-    vocModTmin, vocGen, tCelda, vmpGenOperacion, iscGen, iDiseno, areaGen, energiaGenerador,
-    opciones, mejorOpcion, cabeEnArea: areaGen <= areaDisponible,
-  };
 }
 
 /* ============================================================
@@ -1797,7 +1668,7 @@ function GeneradorTab(props) {
               corrección de tensión con el coeficiente β del Voc aplicado también al Vmp.
             </div>
             <div style={{ marginTop: 14, display: "flex", gap: 8 }}>
-              <button style={btnPrimary} onClick={onGenerarInformePDF}><FileDown size={14} /> Generar informe PDF (Reto 01+02)</button>
+              <button style={btnPrimary} onClick={onGenerarInformePDF}><FileDown size={14} /> Generar informe PDF (Reto 01+02+03)</button>
               <button style={btnSecondary} onClick={onGenerarInforme}><FileDown size={14} /> Version .html</button>
             </div>
           </>

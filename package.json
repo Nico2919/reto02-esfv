@@ -2,12 +2,15 @@
   "name": "reto02-esfv",
   "private": true,
   "version": "1.0.0",
-  "description": "Aplicación web para el dimensionamiento del generador fotovoltaico - Reto 02 ESFV",
+  "description": "Dimensionamiento ESFV: cargas, generador, MPPT y almacenamiento - Retos 01 a 03",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "node --test tests/*.test.js",
+    "test:ui": "node --test tests-ui/*.test.js",
+    "ejemplo:tdr": "node scripts/generar-caso.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -21,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",

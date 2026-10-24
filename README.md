@@ -1,98 +1,103 @@
-# Reto 02 — Dimensionamiento del Generador Fotovoltaico
+# ESFV - Retos 01, 02 y 03
 
-Aplicación web desarrollada para el **Reto 02 de Energía Solar Fotovoltaica (ESFV)** de Ingeniería Electrónica — Universidad del Magdalena.
+Aplicación React para dimensionar un sistema fotovoltaico en una sola sesión. Universidad del Magdalena, Energía Solar Fotovoltaica 2026-II.
 
-La aplicación constituye la segunda etapa del Reto 01 y permite utilizar automáticamente los resultados del dimensionamiento de cargas para realizar el dimensionamiento del generador fotovoltaico.
+1. **Proyecto/contexto**: aplicación, integrantes, días de operación y tarifa.
+2. **Cuadro de cargas (Reto 01)**: horarios, importación Excel y guardar/cargar JSON.
+3. **Resultados (Reto 01)**: perfil de 24 h, energía y demanda máxima.
+4. **Generador FV (Reto 02)**: recurso local/NASA POWER, módulo, PR, temperaturas y cadenas.
+5. **MPPT y baterías (Reto 03)**: conversión con/sin almacenamiento, banco y balance (RF-25 a RF-36).
 
----
+La lógica original del generador se conserva en `src/reto02/generador.js`, extraída sin cambiar sus ecuaciones. Reto 03 tiene motor independiente en `src/reto03/calculos.js` y recibe los resultados anteriores automáticamente.
 
-## 1. Descripción
+## Ejecutar y verificar
 
-El sistema integra los resultados obtenidos en el Reto 01 con la información del recurso solar y un catálogo de módulos fotovoltaicos comerciales.
+Se recomienda Node.js 24 y pnpm 11.25.0. Se incluye lockfile para instalaciones reproducibles.
 
-A partir de la energía diaria requerida, el recurso solar disponible, el factor global de desempeño y las restricciones eléctricas declaradas, la aplicación calcula:
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm test
+pnpm lint
+pnpm build
+pnpm exec playwright install chromium
+pnpm test:ui
+```
 
-- Potencia pico requerida del generador.
-- Número entero de módulos.
-- Potencia instalada.
-- Excedente o déficit de potencia.
-- Número de módulos en serie.
-- Número de cadenas en paralelo.
-- Tensión de circuito abierto corregida a temperatura mínima.
-- Tensión de operación del generador.
-- Corriente de cortocircuito.
-- Corriente de diseño.
-- Temperatura estimada de célula mediante modelo NOCT.
-- Área requerida por el generador.
-- Energía diaria estimada del generador.
+Los scripts también se pueden ejecutar con npm. Las pruebas de interfaz usan `dist/` y arrancan/cierran su servidor en `127.0.0.1:4173`. En Windows con Edge instalado:
 
-La aplicación también permite comparar diferentes módulos comerciales y seleccionar automáticamente una alternativa viable.
+```powershell
+$env:PLAYWRIGHT_CHANNEL = 'msedge'
+pnpm test:ui
+```
 
----
+`allowBuilds.core-js: false` omite su script informativo postinstall, innecesario para esta aplicación. No se requieren credenciales para los catálogos ni pruebas.
 
-## 2. Funcionalidades principales
+## Flujo Reto 03
 
-### Reto 01
+- Rama automática: **con almacenamiento** para off-grid e híbridos; **sin almacenamiento** para on-grid. Se admite selección explícita y volver a automática.
+- Energía 06-18 h/fuera reconstruida desde el perfil. El criterio día/noche editable del Reto 01 permanece independiente.
+- Cada equipo muestra tensiones, arranque, corrientes, reparto de cadenas por MPPT y veredicto **Cumple / No cumple / Alerta por dato no declarado**.
+- Al elegir batería se proponen DoD, eficiencia y tensión compatibles, visibles y editables. LFP usa banco 51,2 V y clase nominal 48 V. No se permiten series fraccionarias.
+- **Aceptar ajuste** añade cadenas completas en Reto 03, recalcula el balance y verifica de nuevo todos los equipos. Puede añadir más módulos que el mínimo energético. **Retirar ajuste** restaura el generador heredado. El dimensionamiento original de Reto 02 se mantiene.
+- Las propuestas de reconexión conservan el número de módulos. Si ningún equipo individual cumple, se informa que hace falta otro equipo/reparto independiente, reconfigurar o reducir el generador.
 
-La aplicación conserva las funcionalidades relacionadas con el cuadro de cargas y permite obtener:
+## Catálogos externos y trazabilidad
 
-- Energía diaria.
-- Perfil horario de 24 horas.
-- Demanda máxima.
-- Hora de máxima demanda.
-- Energía dentro y fuera de la ventana solar.
-- Información general del proyecto.
+| Archivo en `public/` | Contenido |
+|---|---|
+| `catalogo_modulos.json` | Catálogo previo de Reto 02, conservado |
+| `base_datos_solar.json` | Recurso solar previo, conservado |
+| `catalogo_conversion.json` | Seis comerciales: Victron SmartSolar Tr, Deye SUN-SG03LP1-EU y Solis S6 |
+| `catalogo_conversion_tdr.json` | CTRL-A/B/C e INV-A/B/C, referencias académicas |
+| `catalogo_baterias.json` | AGM/LFP declaradas por el TdR, sin fabricante comercial |
 
-Los resultados necesarios para el Reto 02 son heredados automáticamente, evitando que el usuario tenga que volver a introducir la información de las cargas.
+Los equipos reales identifican modelo/revisión, ficha oficial y fecha de consulta. Se incluyen familias utilizadas en Latinoamérica; las variantes EU de 220/230 V no se intercambian con US/LV. La aplicación comprueba compatibilidad CC; la variante de red y el BMS necesitan su comprobación propia.
 
-### Reto 02
+**Editar/importar catálogos JSON** permite pegar y modificar `{ "conversion": [...], "baterias": [...] }`. La validación es atómica. El atributo `origen` mantiene referencias TdR y productos comerciales separados, incluso en el proyecto guardado.
 
-El módulo de dimensionamiento permite:
+## Método y supuestos
 
-- Seleccionar el recurso solar mediante una base de datos local.
-- Consultar NASA POWER.
-- Trabajar con los datos solares en el plano del generador.
-- Utilizar el promedio anual o el mes crítico.
-- Configurar el PR.
-- Configurar la tensión máxima del sistema.
-- Configurar la temperatura mínima.
-- Configurar la temperatura de operación.
-- Declarar el área disponible.
-- Seleccionar automáticamente un módulo comercial.
-- Forzar manualmente un módulo del catálogo.
-- Verificar la viabilidad eléctrica de las cadenas.
-- Generar informes en PDF y HTML.
+```text
+Voc_frio = Voc * (1 + abs(betaVoc)/100 * (25 - Tmin))
+Vmp_caliente = Vmp * (1 - abs(betaVoc)/100 * (Tcelda - 25))
+Vmp_frio = Vmp * (1 + abs(betaVoc)/100 * (25 - Tmin))
+Ns_max = floor(Vmax / Voc_frio_modulo)
+I_banco = Ppico / Vnominal                  # sin 1,25
+I_conductores_Reto03 = 1,25 * Isc           # separado del equipo
+DC_AC = Ppico / Pac                         # rango inicial 1,0-1,3
+Ecc = Ed / etaInv
+Cn_Wh = Ecc * N / (DoD * fT)
+Cn_Ah = Cn_Wh / Vbanco
+Ns_bat = Vbanco / Vunidad                   # debe ser entero
+Np_bat = ceil(Cn_Ah / Ah_unidad)
+DoD_diario = Ecc / E_instalada
+DoD_final = Ecc * N / E_instalada
+Egen = Ecc / etaBat
+Preq = Egen / (HSP * PR)
+trec = N * Ecc / (Ppico * HSP * PR * etaBat - Ecc)
+```
 
----
+Energía interna en Wh, potencia en W y beta en %/°C. Se usa beta Voc también para Vmp, como Reto 02. Arranque verificado conservadoramente con Vmp caliente. PR se interpreta antes de las eficiencias nuevas; cada pérdida se aplica una sola vez. El método TdR aplica etaBat a toda Ed, incluso a cargas diurnas; no simula despacho horario híbrido.
 
-## 3. Tecnologías utilizadas
+`fT` reduce la capacidad disponible y se muestra `DoD_efectivo = DoD_final/fT`. C de carga usa Ppico/Vnominal antes de limitar el cargador; descarga usa Pmax/(etaInv × Vbanco). La comparación es energía instalada/vida declarada, no energía entregada ni costo por ciclo. El balance con cada HSP es por día de operación; la autonomía representa días consecutivos. Los días de operación del Reto 01 se conservan como contexto de consumo.
 
-- React
-- Vite
-- JavaScript / JSX
-- Recharts
-- XLSX
-- jsPDF
-- jsPDF-AutoTable
-- Lucide React
+Los reguladores TdR no declaran ventana independiente ni Imp máximo: se muestra la envolvente derivada Vbat+5 a Vmax e Imp queda pendiente. Los inversores TdR no declaran arranque: se adopta mínimo MPPT como supuesto visible. Las baterías TdR no declaran límite C de descarga: se calcula la tasa y se alerta. Victron no declara Imp máximo independiente en la ficha citada: no se inventa. Un regulador CC requiere inversor CA independiente; la aplicación lo señala.
 
----
+El indicador original de Reto 02 (`1,25 × 1,25 × Isc`) se conserva e identifica en su pestaña/informe; el factor de Reto 03 no se aplica al regulador. Quedan fuera conductores, protecciones, puesta a tierra y análisis económico de Reto 03.
 
-## 4. Requisitos
+## Persistencia e informes
 
-Para ejecutar el proyecto se requiere:
+JSON v3 conserva contexto, cargas, generador, recurso solar personalizado/NASA, entradas Reto 03 y catálogos completos. Los resultados se reconstruyen desde entradas. Se aceptan proyectos v1/v2 con valores iniciales de Reto 03. Las respuestas HTTP tardías no sobrescriben los datos restaurados.
 
-- Node.js
-- npm
-- Navegador web moderno
+El PDF ejecutivo integra tres retos en una página y resume cargas con indicadores/perfil de 24 h. El HTML conserva el cuadro detallado de cargas. El JSON conserva el detalle reconstruible.
 
-El proyecto fue desarrollado y probado mediante Vite.
+Para generar el caso estandarizado y abrirlo con **Cargar proyecto**:
 
----
+```sh
+pnpm ejemplo:tdr
+```
 
-## 5. Instalación
+Crea `tmp/caso-tdr-reto03.json`. Consulte la [matriz RF y resultados esperados](docs/VALIDACION_RETO03.md).
 
-Clonar o descargar el repositorio y entrar en la carpeta del proyecto:
-
-```bash
-cd Reto02_ESFV
+Desarrollo asistido por IA (Codex); ecuaciones, fuentes, supuestos y pruebas quedan explícitos para revisión y sustentación.
