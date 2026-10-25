@@ -1,5 +1,11 @@
 # Guía de uso - Reto 03 ESFV
 
+## Caso final: papelería
+
+Pulsa **Abrir caso final: papelería** para abrir el JSON del docente dimensionado con 30 m² obligatorios. El inversor resulta compatible, pero el balance muestra que la red debe cubrir parte del consumo. En **Paneles solares → Opciones avanzadas y catálogo de paneles**, el modo **Respetar el área como límite obligatorio** limita los paneles; no modifica los aparatos ni sus horarios. Una ampliación que no cabe queda deshabilitada.
+
+Las fichas oficiales del panel y del inversor se abren desde sus respectivas pantallas. Las notas visibles del proyecto se conservan al guardar y en el informe.
+
 ## Primera vez
 
 Abre la aplicación y elige **Agregar mis aparatos**. También puedes usar **Probar con un ejemplo** para conocer el recorrido, o **Abrir proyecto** si ya tienes un archivo JSON guardado.

@@ -1,6 +1,6 @@
 # Catálogo de inversores comerciales
 
-Verificado el **24 de octubre de 2026**. La versión 3.2.0 incluye **nueve inversores reales de cinco fabricantes**: cinco con baterías y cuatro de conexión a red. Se añadieron seis modelos a los tres existentes. Los tres reguladores Victron se cuentan por separado.
+Actualizado el **25 de octubre de 2026**. La versión 3.3.0 incluye **doce inversores reales de cinco fabricantes**: cinco con baterías y siete de conexión a red. Los tres reguladores Victron se cuentan por separado. La papelería de 30 m² utiliza el GoodWe GW6000-MS-30, con 7 kWp de módulos y DC/AC 1,166667.
 
 Cada enlace conduce al documento del fabricante. Se transcribieron los límites de la columna y revisión indicadas; no se mezclan variantes de una misma familia. Las fichas se consultan directamente desde las tarjetas de la aplicación. Los valores de corriente siguientes son **por entrada MPPT**, no la suma de todas las entradas.
 
@@ -26,6 +26,9 @@ GoodWe admite litio/plomo-ácido en la variante sin M seleccionada. Su respaldo 
 | Solis S6-GR1P3K, existente | 3 kW | 600 / 90-520 / 120 V | 14 / 22 A | 2 × 1 | [Manual EUR V1.2](https://www.ginlong.com/uploads/file/Solis_Manual_S6-GR1P%282%2C5-6%29K_FN_EUR_V1%2C2%2820221116%29.pdf) |
 | **GoodWe GW2000-XS-30**, nuevo | 2 kW | 600 / 40-450 / 50 V | 16 / 25 A | 1 × 1 | [Hoja LATAM-ES V2.1, 20241011, p. 2](https://latam.goodwe.com/Ftp/Downloads/Datasheet/LATAM/GW_XS%20PLUS%2B_Datasheet-LATAM_ES.pdf) |
 | **Sungrow SG3.0RS**, nuevo | 3 kW | 600 / 40-560 / 50 V | 16 / 20 A | 2 × 1 | [Hoja Global V12, 20220714, p. 2](https://info-support.sungrowpower.com/application/pdf/2023/07/22/DS_20220714_SG3.0_3.6_4.0RS_Datasheet_V12_EN%28GL%29.pdf) |
+| **GoodWe GW5000-MS-30** | 5 kW | 600 / 40-560 / 50 V | 20 / 25 A | 3 × 1 | [LATAM-ES V2.1, 20250910, p. 2](https://latam.goodwe.com/Ftp/Downloads/Datasheet/LATAM/GW_MS%20G3_Datasheet-LATAM_ES.pdf) |
+| **GoodWe GW6000-MS-30** | 6 kW | 600 / 40-560 / 50 V | 20 / 25 A | 3 × 1 | [LATAM-ES V2.1, 20250910, p. 2](https://latam.goodwe.com/Ftp/Downloads/Datasheet/LATAM/GW_MS%20G3_Datasheet-LATAM_ES.pdf) |
+| **GoodWe GW10K-MS-30** | 10 kW | 600 / 40-560 / 50 V | 20 / 25 A | 3 × 1 | [LATAM-ES V2.1, 20250910, p. 2](https://latam.goodwe.com/Ftp/Downloads/Datasheet/LATAM/GW_MS%20G3_Datasheet-LATAM_ES.pdf) |
 
 Todos estos modelos declaran salida monofásica de 220/230 V (algunos también 240 V), 50/60 Hz. Esto no confirma certificación, disponibilidad comercial ni adecuación a una red local específica. Los modelos de conexión a red no proporcionan respaldo autónomo con baterías.
 
@@ -46,4 +49,6 @@ En **5. Inversor y baterías → Elige el equipo**, selecciona **Equipos comerci
 
 Los proyectos guardados conservan su catálogo para reproducir resultados. **Actualizar equipos comerciales** consulta el JSON publicado e incorpora las nuevas referencias. Actualiza las fichas con el mismo ID comercial y conserva los equipos propios con otros IDs, las referencias académicas y las baterías. Una descarga o validación fallida deja el catálogo anterior intacto. Guarda otra vez el proyecto para conservar la actualización.
 
-Las referencias CTRL-A/B/C e INV-A/B/C permanecen en `catalogo_conversion_tdr.json`. Los tres Victron SmartSolar son **reguladores de carga CC**, requieren inversor CA independiente y no se incluyen en el recuento de nueve inversores. Ningún equipo se marca compatible solo por estar en este catálogo: se evalúa contra los paneles, temperatura, corrientes, demanda y banco del proyecto.
+Las referencias CTRL-A/B/C e INV-A/B/C permanecen en `catalogo_conversion_tdr.json`. Los tres Victron SmartSolar son **reguladores de carga CC**, requieren inversor CA independiente y no se incluyen en el recuento de doce inversores. Ningún equipo se marca compatible solo por estar en este catálogo: se evalúa contra los paneles, temperatura, corrientes, demanda y banco del proyecto.
+
+Los MS G3 de 5/6/10 kW declaran 7.750/9.300/15.500 W máximos de entrada FV en la tabla LATAM usada. Se usa Pac nominal para DC/AC y no se mezclan sus notas específicas de Brasil/Chile. El GW6000-MS-30 admite las dos cadenas de la papelería en MPPT separados; su compatibilidad eléctrica no elimina el déficit energético por área.

@@ -1,6 +1,7 @@
 :root { font-family:Inter,'Segoe UI',Arial,sans-serif; color:#233446; background:#edf2f6; font-synthesis:none; text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; color-scheme:light; }
 * { box-sizing:border-box; }
 body { margin:0; }
+.app-design-note { margin:0; padding:13px 30px; background:#fff1ce; color:#725315; font-size:13px; line-height:1.6; border-bottom:1px solid #e1cf9e; }
 #root { max-width:1280px; margin:0 auto; min-height:100svh; }
 button,input,select,textarea { font-family:inherit; }
 button,a,input,select,textarea,summary { -webkit-tap-highlight-color:transparent; }

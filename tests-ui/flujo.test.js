@@ -161,7 +161,7 @@ test('Catalogo ampliado: actualiza proyectos anteriores, filtra inversores y con
   await page.locator('input[type=file]').nth(1).setInputFiles({name:'inversores.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(saved))});
   await expect(goodwe.getByRole('button',{name:'Equipo seleccionado',exact:true})).toBeVisible();
   await page.getByLabel('¿Usarás baterías?',{exact:true}).selectOption('sin');
-  await expect(page.locator('.r3-equipo')).toHaveCount(4);
+  await expect(page.locator('.r3-equipo')).toHaveCount(7);
   await expect(page.locator('.r3-equipment-grid')).toContainText('Sungrow');
   await expect(page.locator('.r3-equipment-grid')).toContainText('GW2000-XS-30');
   await page.setViewportSize({width:390,height:844});
@@ -173,11 +173,13 @@ test('Catalogo ampliado: actualiza proyectos anteriores, filtra inversores y con
   await page.close();
 });
 
-test('Los cinco proyectos de entrega reconstruyen en la aplicacion sus informes y resultados', async () => {
+test('Los proyectos de entrega reconstruyen en la aplicacion sus informes y resultados', async () => {
   const page=await browser.newPage({viewport:{width:1366,height:950}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(baseURL);
-  for(const id of ['tdr-agm','tdr-lfp','tdr-sin-almacenamiento','propio-partida','propio-cierre']) {
+  const manifest=JSON.parse(await readFile('entrega/reto03/manifest.json','utf8'));
+  const ids=Object.keys(manifest.archivos).filter(p=>p.startsWith('casos/')).map(p=>p.slice(6,-5));
+  for(const id of ids) {
     const datos=await readFile(`entrega/reto03/casos/${id}.json`);
     const esperado=JSON.parse(await readFile(`entrega/reto03/resultados/${id}.json`,'utf8'));
     await page.locator('input[type=file]').nth(1).setInputFiles({name:`${id}.json`,mimeType:'application/json',buffer:datos});
@@ -196,6 +198,37 @@ test('Los cinco proyectos de entrega reconstruyen en la aplicacion sus informes 
     assert.equal((pdf.toString('latin1').match(/\/Type \/Page\b/g)??[]).length,1);
     assert.ok(pdf.toString('latin1').includes(esperado.resultado.seleccionado.equipo.modelo.split(' (')[0]));
   }
+  await page.close();
+});
+
+test('Caso final de papeleria: conserva 30 m2, muestra deficit y bloquea ampliaciones que no caben', async () => {
+  const page=await browser.newPage({viewport:{width:1366,height:950}});
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(baseURL);
+  await page.getByRole('button',{name:'Abrir caso final: papelería',exact:true}).click();
+  await expect(page.getByText('27.800 kWh/día',{exact:true})).toBeVisible();
+  await expect(page.locator('.app-design-note')).toContainText('30 m2 obligatorios');
+  await expect(page.locator('.r3-equipo.selected')).toContainText('GW6000-MS-30');
+  await expect(page.locator('.r3-equipo.selected').getByText('Compatible',{exact:true})).toBeVisible();
+  assert.equal(await banco(page).count(),0);
+  await nav(page,/4.*Paneles solares/);
+  const ficha=page.getByRole('link',{name:/Hoja de datos oficial del panel/});
+  await expect(ficha).toBeVisible(); assert.match(await ficha.getAttribute('href'),/static.longi.com/);
+  await abrir(page,'Opciones avanzadas y catálogo de paneles');
+  await expect(page.getByRole('checkbox',{name:'Respetar el área como límite obligatorio'})).toBeChecked();
+  await nav(page,/5.*Inversor y baterías/);
+  const pendiente=page.waitForEvent('download');
+  await page.getByRole('button',{name:'Guardar proyecto',exact:true}).click();
+  const guardado=JSON.parse(await readFile(await (await pendiente).path(),'utf8'));
+  assert.equal(guardado.generador.areaDisponible,30); assert.match(guardado.proyecto.notas,/30 m2 obligatorios/);
+  const ampliaciones=page.getByRole('button',{name:'La ampliación no cabe en 30 m²',exact:true});
+  await expect(ampliaciones).toHaveCount(2);
+  await expect(ampliaciones.nth(0)).toBeDisabled(); await expect(ampliaciones.nth(1)).toBeDisabled();
+  await page.getByRole('heading',{name:'Tu punto de partida',exact:true}).scrollIntoViewIfNeeded();
+  await page.screenshot({path:'tmp/qa/papeleria-escritorio.png'});
+  await page.setViewportSize({width:390,height:844});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
+  await page.screenshot({path:'tmp/qa/papeleria-movil.png'});
   await page.close();
 });
 

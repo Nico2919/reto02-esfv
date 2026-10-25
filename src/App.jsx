@@ -8,6 +8,7 @@ import Reto03Tab from './reto03/Reto03Tab.jsx';
 import { inicialReto03, heredarReto03, calcularReto03, validarCatalogos } from './reto03/calculos.js';
 import { crearProyecto, leerProyecto } from './reto03/proyecto.js';
 import { construirInforme } from './reto03/informe.js';
+import { transponerATiltoMensual } from './reto02/recurso.js';
 import { calcularGenerador, evaluarCatalogo } from './reto02/generador.js';
 import {
   Sun, Moon, Sunrise, Plus, Pencil, Trash2, Eraser, Upload, Save,
@@ -491,6 +492,15 @@ export default function ESFVApp() {
     } catch (err) { mostrarAlerta('No se pudo abrir el ejemplo', err.message); }
   }
 
+  async function onCargarCasoFinal() {
+    try {
+      const respuesta = await fetch('./caso_papeleria.json');
+      if (!respuesta.ok) throw new Error('El caso final no esta disponible.');
+      restaurarProyecto(await respuesta.json(), 'Papeleria - caso del docente, 30 m2');
+      setTab('reto03');
+    } catch (err) { mostrarAlerta('No se pudo abrir la papeleria', err.message); }
+  }
+
   function onCargarProyecto(e) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -524,7 +534,7 @@ export default function ESFVApp() {
     vMaxSistema: 600,
     tMinAmbiente: 20,
     tOperacion: 32,
-    areaDisponible: 20,
+    areaDisponible: 20, limitarPorArea: false,
     moduloSeleccionadoId: "tdr550",
     moduloForzado: false,
     catalogo: CATALOGO_INICIAL(),
@@ -697,7 +707,7 @@ export default function ESFVApp() {
     const mejorOpcionPrevia = evaluarCatalogo({ 
         ed: resultados.energiaDia, hsp: hspUsado, pr: generadorState.pr, 
         vMaxSistema: generadorState.vMaxSistema, tMin: generadorState.tMinAmbiente, 
-        catalogo: generadorState.catalogo 
+        catalogo: generadorState.catalogo, areaDisponible: generadorState.areaDisponible, limitarPorArea: generadorState.limitarPorArea,
     }).mejorOpcion;
 
     const moduloActivoId = generadorState.moduloForzado
@@ -710,11 +720,11 @@ export default function ESFVApp() {
       ed: resultados.energiaDia, hsp: hspUsado, pr: generadorState.pr,
       modulo: moduloSeleccionado, vMaxSistema: generadorState.vMaxSistema,
       tMin: generadorState.tMinAmbiente, tOp: generadorState.tOperacion,
-      areaDisponible: generadorState.areaDisponible, catalogo: generadorState.catalogo,
+      areaDisponible: generadorState.areaDisponible, catalogo: generadorState.catalogo, limitarPorArea: generadorState.limitarPorArea,
     });
   }, [resultados.energiaDia, hspUsado, generadorState.pr, generadorState.vMaxSistema,
       generadorState.tMinAmbiente, generadorState.tOperacion, generadorState.areaDisponible, 
-      generadorState.catalogo, generadorState.moduloForzado, generadorState.moduloSeleccionadoId]);
+      generadorState.catalogo, generadorState.moduloForzado, generadorState.moduloSeleccionadoId, generadorState.limitarPorArea]);
 
   const moduloActivo = generadorState.catalogo.find(
       (m) => m.id === (generadorState.moduloForzado ? generadorState.moduloSeleccionadoId : dimension.mejorOpcion?.id)
@@ -862,10 +872,11 @@ export default function ESFVApp() {
         <TabButton n="5" label="Inversor y baterías" active={tab === "reto03"} onClick={() => setTab("reto03")} />
       </nav>
       <div className="app-status" role="status">{status}</div>
+      {proyecto.notas && <p className="app-design-note">{proyecto.notas}</p>}
       <main className="app-main">
         {tab === "reto03" && <Reto03Tab heredados={heredadosReto03} config={reto03} setConfig={setReto03}
           catalogos={catalogosReto03} setCatalogos={actualizarCatalogosReto03} resultado={resultadoReto03}
-          errorCatalogo={errorCatalogoReto03} onIr={setTab} onEjemplo={onCargarEjemplo} />}
+          errorCatalogo={errorCatalogoReto03} onIr={setTab} onEjemplo={onCargarEjemplo} onCasoFinal={onCargarCasoFinal} />}
         {tab === "proyecto" && (
           <ProyectoTab proyecto={proyecto} setProyecto={setProyecto} criterio={criterio}
             onValidar={() => {
@@ -1016,56 +1027,6 @@ const BASE_DATOS_SOLAR = [
   },
 ];
 
-const DIAS_REPRESENTATIVOS = [17, 47, 75, 105, 135, 162, 198, 228, 258, 288, 318, 344];
-
-function declinacionSolar(n) {
-  return 23.45 * Math.sin((2 * Math.PI / 365) * (284 + n));
-}
-function toRad(d) { return d * Math.PI / 180; }
-
-// Integración Numérica para incorporar efecto exacto del Azimut
-function rbPromedioMensual(latDeg, tiltDeg, n, azimutDeg) {
-  const phi = toRad(latDeg);
-  const beta = toRad(tiltDeg);
-  const delta = toRad(declinacionSolar(n));
-  const gamma = toRad(azimutDeg - 180); 
-
-  const argWs = -Math.tan(phi) * Math.tan(delta);
-  const ws = Math.acos(Math.max(-1, Math.min(1, argWs)));
-
-  let num = 0, den = 0;
-  const dW = Math.PI / 180; 
-
-  for (let w = -ws; w <= ws; w += dW) {
-    const cosTz = Math.sin(phi)*Math.sin(delta) + Math.cos(phi)*Math.cos(delta)*Math.cos(w);
-    if (cosTz <= 0) continue;
-
-    const term1 = Math.sin(delta) * Math.sin(phi) * Math.cos(beta);
-    const term2 = -Math.sin(delta) * Math.cos(phi) * Math.sin(beta) * Math.cos(gamma);
-    const term3 = Math.cos(delta) * Math.cos(phi) * Math.cos(beta) * Math.cos(w);
-    const term4 = Math.cos(delta) * Math.sin(phi) * Math.sin(beta) * Math.cos(gamma) * Math.cos(w);
-    const term5 = Math.cos(delta) * Math.sin(beta) * Math.sin(gamma) * Math.sin(w);
-    
-    const cosT = term1 + term2 + term3 + term4 + term5;
-
-    den += cosTz * dW;
-    if (cosT > 0) num += cosT * dW;
-  }
-  return den > 0 ? num / den : 1;
-}
-
-function transponerATiltoMensual({ lat, tiltDeg, azimutDeg, ghi, dif, rho = 0.2 }) {
-  const beta = toRad(tiltDeg);
-  return ghi.map((H, i) => {
-    const n = DIAS_REPRESENTATIVOS[i];
-    const Hd = Number.isFinite(dif?.[i]) ? dif[i] : H * 0.3; 
-    const Hb = Math.max(0, H - Hd);
-    const Rb = rbPromedioMensual(lat, tiltDeg, n, azimutDeg);
-    const HT = Hb * Rb + Hd * (1 + Math.cos(beta)) / 2 + H * rho * (1 - Math.cos(beta)) / 2;
-    return Math.max(0, HT);
-  });
-}
-
 /* ============================================================
    SUBCOMPONENTES COMPARTIDOS
    ============================================================ */
@@ -1138,6 +1099,9 @@ function ProyectoTab({ proyecto, setProyecto, criterio, onValidar }) {
           <textarea style={{ ...inputStyle, minHeight: 80, fontFamily: "inherit", resize: "vertical" }}
             value={proyecto.integrantes} onChange={set("integrantes")} />
         </Field>
+        {proyecto.notas && <Field label="Condiciones del diseño">
+          <textarea style={{ ...inputStyle, minHeight: 85, resize: 'vertical' }} value={proyecto.notas} onChange={set('notas')} />
+        </Field>}
         <div className="app-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <Field label="Dias de operacion al mes">
             <input type="number" min={1} max={31} style={inputStyle} value={proyecto.diasMes}
@@ -1410,6 +1374,7 @@ function GeneradorTab(props) {
           ))}
         </div>
       </Panel>
+      {/^https:\/\//.test(modulo?.fuente ?? '') && <p><a href={modulo.fuente} target="_blank" rel="noreferrer">Hoja de datos oficial del panel: {modulo.modelo}</a></p>}
 
       <div className="app-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         <Panel icon={Sun} title="Sol disponible en tu ubicación">
@@ -1523,6 +1488,10 @@ function GeneradorTab(props) {
               <input type="number" min="0" style={inputStyle} value={gen.areaDisponible}
                 onChange={(e) => setGen({ areaDisponible: Number(e.target.value) })} />
             </Field>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, marginBottom: 14 }}>
+              <input type="checkbox" aria-label="Respetar el área como límite obligatorio" checked={Boolean(gen.limitarPorArea)} onChange={e => setGen({ limitarPorArea: e.target.checked })} />
+              Respetar el área como límite obligatorio
+            </label>
             <Field label="Modulo preferido (solo si se fuerza manualmente)"
               hint={gen.moduloForzado ? "Activo: se esta usando este modulo." : "Inactivo: la app esta usando el de menor excedente automaticamente."}>
               <select style={inputStyle} value={gen.moduloSeleccionadoId} disabled={!gen.moduloForzado}

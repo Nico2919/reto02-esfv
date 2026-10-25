@@ -15,7 +15,8 @@ async function guardar(ruta, datos) {
   await writeFile(url, datos);
   archivos[ruta] = { sha256: hash(datos), bytes: Buffer.byteLength(datos) };
 }
-for (const [id, proyecto] of Object.entries(casosEntrega())) {
+const casos = casosEntrega();
+for (const [id, proyecto] of Object.entries(casos)) {
   const reconstruido = reconstruirProyecto(proyecto);
   await guardar(`casos/${id}.json`, json(proyecto));
   await guardar(`resultados/${id}.json`, json(reconstruido));
@@ -25,14 +26,16 @@ for (const [id, proyecto] of Object.entries(casosEntrega())) {
   if (pdf.getNumberOfPages() !== 1) throw new Error(`${id}: el informe debe ocupar una pagina.`);
   await guardar(`informes/${id}.pdf`, Buffer.from(pdf.output('arraybuffer')));
 }
+await writeFile(new URL('public/caso_papeleria.json', root), json(casos['papeleria-final']));
 const sensibilidad = sensibilidadEntrega();
 await guardar('resultados/sensibilidad.json', json(sensibilidad));
 const columnas = Object.keys(sensibilidad[0]);
 const csv = [columnas.join(','), ...sensibilidad.map(f => columnas.map(k => f[k] == null ? '' : f[k]).join(','))].join('\n') + '\n';
 await guardar('resultados/sensibilidad.csv', csv);
 const rutasFuentes = ['package.json', 'scripts/datos-entrega.mjs', 'scripts/generar-entrega.mjs',
-  'src/App.jsx', 'src/reto02/generador.js', 'src/reto03/calculos.js', 'src/reto03/informe.js', 'src/reto03/proyecto.js',
-  'public/ejemplo_reto03.json', 'public/catalogo_conversion.json', 'public/catalogo_conversion_tdr.json', 'public/catalogo_baterias.json'];
+  'src/App.jsx', 'src/reto02/generador.js', 'src/reto02/recurso.js', 'src/reto03/calculos.js', 'src/reto03/informe.js', 'src/reto03/proyecto.js',
+  'public/ejemplo_reto03.json', 'public/caso_papeleria.json', 'public/catalogo_modulos.json', 'public/catalogo_conversion.json', 'public/catalogo_conversion_tdr.json', 'public/catalogo_baterias.json',
+  'entrega/reto03/entrada/papeleria-original.json'];
 const fuentes = {};
 for (const ruta of rutasFuentes) fuentes[ruta] = hash((await readFile(new URL(ruta, root), 'utf8')).replace(/\r\n/g, '\n'));
 const paquete = JSON.parse(await readFile(new URL('package.json', root), 'utf8'));
@@ -41,4 +44,4 @@ await writeFile(new URL(destino + 'manifest.json', root), json({
     sha256: '5c1a63377edc2c8cda7b22197dea43f75903efbb808473a6ab61529231f5d5e4' },
   generacion: 'pnpm entrega:generar', verificacion: 'pnpm entrega:verificar', fuentes, archivos,
 }));
-console.log(`Entrega ${paquete.version}: 5 casos JSON, 5 informes de una pagina, resultados y sensibilidad en ${fileURLToPath(new URL(destino, root))}`);
+console.log(`Entrega ${paquete.version}: ${Object.keys(casos).length} casos JSON e informes de una pagina, resultados y sensibilidad en ${fileURLToPath(new URL(destino, root))}`);

@@ -6,9 +6,11 @@ export function leerProyecto(datos) {
   if (!datos.proyecto || typeof datos.proyecto.nombre !== 'string' || typeof datos.proyecto.integrantes !== 'string' || typeof datos.proyecto.tipoApp !== 'string' || !Number.isFinite(datos.proyecto.diasMes) || datos.proyecto.diasMes <= 0 || datos.proyecto.diasMes > 31 || !Number.isFinite(datos.proyecto.cu)) throw new Error('Contexto de proyecto invalido.');
   if (!Array.isArray(datos.cargas) || datos.cargas.some(c => typeof c.carga !== 'string' || !Number.isFinite(c.cantidad) || c.cantidad <= 0 || !Number.isFinite(c.potenciaUnitaria) || c.potenciaUnitaria <= 0 || !Array.isArray(c.mask) || c.mask.length !== 24 || c.mask.some(v => v !== 0 && v !== 1))) throw new Error('Cargas o perfil horario invalidos.');
   const criterio = datos.criterio ?? { inicio: 6, fin: 18 };
+  if (datos.proyecto.notas != null && typeof datos.proyecto.notas !== 'string') throw new Error('Las notas del proyecto deben ser texto.');
   if (!Number.isInteger(criterio.inicio) || !Number.isInteger(criterio.fin) || criterio.inicio < 0 || criterio.inicio > 23 || criterio.fin < 0 || criterio.fin > 24 || criterio.inicio === criterio.fin) throw new Error('Ventana temporal invalida.');
   if (datos.generador) {
     const g = datos.generador;
+    if (g.limitarPorArea != null && typeof g.limitarPorArea !== 'boolean') throw new Error('El limite de superficie debe ser verdadero o falso.');
     if (!Array.isArray(g.catalogo) || !g.catalogo.length || g.catalogo.some(m => !m || !m.id || typeof m.fabricante !== 'string' || typeof m.modelo !== 'string' || ['potencia','voc','vmp','isc','imp','area','noct'].some(k => !Number.isFinite(m[k]) || m[k] <= 0) || !Number.isFinite(m.beta))) throw new Error('Catalogo de modulos invalido.');
     for (const k of ['pr','vMaxSistema','tMinAmbiente','tOperacion','areaDisponible','lat','lon','inclinacion','azimut']) if (g[k] != null && !Number.isFinite(g[k])) throw new Error(`Parametro del generador invalido: ${k}.`);
     if (g.rawDataApi && ['ghi','dni','dif'].some(k => !Array.isArray(g.rawDataApi[k]) || g.rawDataApi[k].length !== 12 || g.rawDataApi[k].some(v => !Number.isFinite(v)))) throw new Error('Recurso NASA guardado invalido.');

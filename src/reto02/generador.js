@@ -1,4 +1,17 @@
-export function evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo }) {
+function disponerPaneles(necesarios, maxSerie, areaDisponible, areaModulo, limitarPorArea) {
+  if (limitarPorArea) {
+    const nTotal = Math.min(necesarios, Math.floor(areaDisponible / areaModulo + 1e-10));
+    if (!Number.isSafeInteger(nTotal) || nTotal < 1 || !Number.isSafeInteger(maxSerie) || maxSerie < 1) return null;
+    let ns = Math.min(nTotal, maxSerie);
+    while (ns > 1 && nTotal % ns !== 0) ns--;
+    return { ns, np: nTotal / ns, nt: nTotal };
+  }
+  const ns = Math.min(necesarios, maxSerie);
+  const np = Math.ceil(necesarios / ns);
+  return { ns, np, nt: ns * np };
+}
+
+export function evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo, areaDisponible, limitarPorArea = false }) {
   const ppico = hsp > 0 && pr > 0 ? ed / (hsp * pr) : 0;
 
   const opciones = (catalogo || []).map((m) => {
@@ -15,9 +28,9 @@ export function evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo }) {
     }
 
     const nNec = Math.max(1, Math.ceil((ppico * 1000) / m.potencia));
-    const ns = Math.min(nNec, nsMax);
-    const np = Math.ceil(nNec / ns);
-    const nt = ns * np;
+    const arreglo = disponerPaneles(nNec, nsMax, areaDisponible, m.area, limitarPorArea);
+    if (!arreglo) return { id: m.id, nombre: `${m.fabricante} ${m.modelo}`, descartado: true, motivo: 'El modulo no cabe en el area disponible.' };
+    const { nt } = arreglo;
     const pInst = nt * m.potencia;
     const exc = ppico > 0 ? ((pInst / 1000 - ppico) / ppico) * 100 : 0;
     return { id: m.id, nombre: `${m.fabricante} ${m.modelo}`, nTotal: nt, pInst, excedentePct: exc, descartado: false };
@@ -29,8 +42,8 @@ export function evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo }) {
   return { ppico, opciones, mejorOpcion, hayViables: viables.length > 0 };
 }
 
-export function calcularGenerador({ ed, hsp, pr, modulo, vMaxSistema, tMin, tOp, areaDisponible, catalogo }) {
-  const { opciones, mejorOpcion, hayViables } = evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo });
+export function calcularGenerador({ ed, hsp, pr, modulo, vMaxSistema, tMin, tOp, areaDisponible, catalogo, limitarPorArea = false }) {
+  const { opciones, mejorOpcion, hayViables } = evaluarCatalogo({ ed, hsp, pr, vMaxSistema, tMin, catalogo, areaDisponible, limitarPorArea });
 
   const errores = [];
   if (hsp <= 0) errores.push("El recurso solar (HSP) debe ser mayor que cero.");
@@ -52,9 +65,9 @@ export function calcularGenerador({ ed, hsp, pr, modulo, vMaxSistema, tMin, tOp,
   }
 
   const nNecesarios = Math.max(1, Math.ceil((ppico * 1000) / modulo.potencia));
-  const nSerie = Math.min(nNecesarios, nSerieMax);
-  const nParalelo = Math.ceil(nNecesarios / nSerie);
-  const nTotal = nSerie * nParalelo;
+  const arreglo = disponerPaneles(nNecesarios, nSerieMax, areaDisponible, modulo.area, limitarPorArea);
+  if (!arreglo) return { bloqueado: true, errores: ['El modulo seleccionado no cabe en el area disponible.'], opciones, mejorOpcion };
+  const { ns: nSerie, np: nParalelo, nt: nTotal } = arreglo;
   const pInstalada = nTotal * modulo.potencia;
   const excedentePct = ppico > 0 ? ((pInstalada / 1000 - ppico) / ppico) * 100 : 0;
   const vocGen = nSerie * vocModTmin;
@@ -70,5 +83,6 @@ export function calcularGenerador({ ed, hsp, pr, modulo, vMaxSistema, tMin, tOp,
     ppico, nSerieMax, nNecesarios, nSerie, nParalelo, nTotal, pInstalada, excedentePct,
     vocModTmin, vocGen, tCelda, vmpGenOperacion, iscGen, iDiseno, areaGen, energiaGenerador,
     opciones, mejorOpcion, cabeEnArea: areaGen <= areaDisponible,
+    limitarPorArea, limitadoPorArea: limitarPorArea && nTotal < nNecesarios,
   };
 }

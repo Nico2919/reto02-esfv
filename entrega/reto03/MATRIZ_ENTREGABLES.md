@@ -1,6 +1,6 @@
 # Matriz de entregables y requisitos de la guía
 
-Guía contrastada: **TdR Reto 03 ESFV 2026-II**, tres páginas. Versión de entrega: **3.2.1**. El documento pide una sola aplicación web en la sección 8; las evidencias de esta carpeta corresponden a los criterios de la sección 7 y a RF-25 a RF-36, no a entregables adicionales impuestos por esta matriz.
+Guía contrastada: **TdR Reto 03 ESFV 2026-II**, tres páginas. Versión de entrega: **3.3.0**. El documento pide una sola aplicación web en la sección 8; las evidencias de esta carpeta corresponden a los criterios de la sección 7 y a RF-25 a RF-36, no a entregables adicionales impuestos por esta matriz.
 
 ## Criterios de evaluación y condiciones
 
@@ -10,9 +10,9 @@ Guía contrastada: **TdR Reto 03 ESFV 2026-II**, tres páginas. Versión de entr
 | §5 y §7: requisitos | Implementación de RF-25 a RF-36 | Matriz detallada siguiente, pruebas numéricas y de navegador | Implementado; datos no declarados se alertan |
 | §6 y §7: caso estandarizado | Reguladores, AGM/LFP, cierre y rama sin baterías | [AGM](casos/tdr-agm.json), [LFP](casos/tdr-lfp.json), [red](casos/tdr-sin-almacenamiento.json); PDF y cálculos en sus carpetas | Reproducible desde entradas; se comparan ecuaciones, no valores reservados del docente |
 | §1 y §7: usabilidad | Flujo entre ramas, correcciones, veredictos legibles y respuesta inmediata | Aplicación guiada; `tests-ui/flujo.test.js`; [manual](../../docs/GUIA_USO.md) | Implementado y probado en escritorio/móvil |
-| §5 RF-27 y §7: catálogo | Al menos tres equipos de conversión y dos tecnologías de batería; selección y fuentes | 12 conversiones comerciales (9 inversores y 3 reguladores), 6 referencias TdR, AGM/LFP; [fichas](../../docs/CATALOGO_INVERSORES.md) | Comercial y académico separados; sin atribuir baterías TdR a una marca real |
-| §7: ingeniería propia | Caso, método justificado y sensibilidad | [Memoria](MEMORIA_CASO_PROPIO.md), proyectos propio-partida/propio-cierre y sensibilidad CSV/JSON | Caso propuesto con supuestos identificados; seis escenarios |
-| §5 RF-36 y §7: informe | Informe de una página con equipo, banco, cierre y alertas | [Índice de cinco informes](README.md#proyectos-que-se-pueden-abrir-e-informes) | Cada PDF tiene una página y un proyecto asociado |
+| §5 RF-27 y §7: catálogo | Al menos tres equipos de conversión y dos tecnologías de batería; selección y fuentes | 15 conversiones comerciales (12 inversores y 3 reguladores), 6 referencias TdR, AGM/LFP; [fichas](../../docs/CATALOGO_INVERSORES.md) | Comercial y académico separados; sin atribuir baterías TdR a una marca real |
+| §7: ingeniería propia | Caso, método justificado y sensibilidad | [Papelería del docente](MEMORIA_PAPELERIA.md) y [estudio complementario propio](MEMORIA_CASO_PROPIO.md) con sensibilidad CSV/JSON | Caso propuesto con supuestos identificados; seis escenarios |
+| §5 RF-36 y §7: informe | Informe de una página con equipo, banco, cierre y alertas | [Índice de seis informes](README.md) | Cada PDF tiene una página y un proyecto asociado |
 | §7: repositorio y pruebas | README, separación de cálculo/interfaz, pruebas e historial | README, motores puros, `tests/`, `tests-ui/`, CHANGELOG y Actions | Versionado y verificable con los comandos de entrega |
 | §8: única versión funcional | Aplicación web | Raíz del repositorio y `pnpm dev` / `pnpm build` | Los casos y PDF son salidas de esa misma aplicación |
 | §8: redondeo | Diferencias de hasta 1 % con el mismo método | Resultados completos sin redondeo y PDF con presentación redondeada; pruebas con tolerancias estrictas | Método TdR; no se presenta comparación con referencias no publicadas |
@@ -36,6 +36,10 @@ Guía contrastada: **TdR Reto 03 ESFV 2026-II**, tres páginas. Versión de entr
 | 33 | Implementado | Ns/Np enteros, Ah/kWh instalados y DoD; AGM 4S4P y LFP 1S5P en el caso estandarizado |
 | 34 | Implementado | `balanceEnergia`, márgenes y módulos; aceptación/deshacer y nueva evaluación; caso propio de 2 a 4 módulos |
 | 35 | Implementado con datos de ficha pendientes | Tasas C calculadas, comparación con límite cuando existe, recuperación y dos tecnologías. El TdR no declara C máximo de descarga; la comprobación física de descarga permanece pendiente y alertada. La prueba inyecta un límite para comprobar que se detecta su exceso |
-| 36 | Implementado | Proyectos v3 con lectura v1/v2; cinco JSON reabribles, cinco PDF de una página y resultados reconstruidos; prueba de ida/vuelta y descargas |
+| 36 | Implementado | Proyectos v3 con lectura v1/v2; seis JSON reabribles, seis PDF de una página y resultados reconstruidos; prueba de ida/vuelta y descargas |
 
 La matriz registra el alcance comprobable del software; no reemplaza la valoración académica ni elimina los avisos de datos faltantes. [VALIDACION_RETO03.md](../../docs/VALIDACION_RETO03.md) detalla los valores esperados y [manifest.json](manifest.json) identifica los archivos generados.
+
+## Restricción fija del caso del docente
+
+La papelería conserva los **30 m² obligatorios**, el consumo y las HSP del archivo original. La entrega final usa 14 módulos que caben en ese límite y un inversor eléctricamente compatible. El balance sigue mostrando un déficit: no cumple cobertura solar del 100 %. En on-grid el apoyo de la red es necesario. Una aplicación que avisa esta restricción no está fallando su cálculo; está mostrando la inviabilidad de cubrirlo todo con las entradas dadas. Las pruebas verifican esta separación y bloquean una ampliación fuera del área.

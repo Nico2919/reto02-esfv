@@ -20,7 +20,13 @@ export function construirInforme({ proyecto, resultados, h, config: c, resultado
   line(`${proyecto.nombre.slice(0, 65)} | ${proyecto.fecha} | ${proyecto.tipoApp}`, 16, 8);
   if (proyecto.integrantes?.trim()) line(`Integrantes: ${proyecto.integrantes.split('\n').map(n => n.trim()).filter(Boolean).join(' / ')}`, 21, 6);
   doc.setTextColor(22, 32, 46);
-  let y = table(26, ['Consumo del proyecto', 'Perfil y operacion', 'Energia temporal (06-18 h)'], [[
+  let inicio = 26;
+  if (proyecto.notas) {
+    doc.setFontSize(7);
+    const notas = doc.splitTextToSize(text(proyecto.notas), 185).slice(0, 4);
+    doc.text(notas, 12, inicio + 3); inicio += notas.length * 3 + 6;
+  }
+  let y = table(inicio, ['Consumo del proyecto', 'Perfil y operacion', 'Energia temporal (06-18 h)'], [[
     `Ed ${f(h.edWh / 1000, 3)} kWh/dia; Pmax ${f(h.pMax, 0)} W a ${h.horaPico}:00\nP instalada ${f(resultados.pInst / 1000)} kW`,
     `${h.diasMes} dias/mes; ${h.diasMes * 12} dias/ano\nE mes ${f(resultados.energiaMes)} kWh; costo mes $${Math.round(resultados.costoMes)}`,
     `Dentro ${f(h.dentroWh / 1000, 3)} / fuera ${f(h.fueraWh / 1000, 3)} kWh/dia`,
@@ -59,8 +65,8 @@ export function construirInforme({ proyecto, resultados, h, config: c, resultado
       r.tecnologias.slice(0, 3).map(t => `${t.bateria.tecnologia}: ${f(t.nominalPorAnio / 1000)} kWh/ano (${t.bateria.vida} anos)`).join('\n') + '\nIndicador nominal, no energia entregada.',
     ]]);
   }
-  y = table(y, ['Balance diario', 'Produccion FV / Preq', 'Margen / modulos minimos', 'Recuperacion banco'], ['anual', 'critico'].map(key => {
-    const b = r.balance[key]; return [key === 'anual' ? 'Promedio anual' : 'Mes critico', `${f(b.produccion / 1000, 3)} kWh / ${f(b.requeridaWp / 1000, 3)} kWp`, `${f(b.margenPct)}% / +${b.modulosAdicionales}`, r.banco ? b.recuperacion == null ? 'No se recupera' : `${f(b.recuperacion)} dias` : 'No aplica'];
+  y = table(y, ['Balance diario', 'Produccion FV / Preq', 'Margen / modulos minimos', r.banco ? 'Recuperacion banco' : 'Deficit equivalente CA'], ['anual', 'critico'].map(key => {
+    const b = r.balance[key]; return [key === 'anual' ? 'Promedio anual' : 'Mes critico', `${f(b.produccion / 1000, 3)} kWh / ${f(b.requeridaWp / 1000, 3)} kWp`, `${f(b.margenPct)}% / +${b.modulosAdicionales}`, r.banco ? b.recuperacion == null ? 'No se recupera' : `${f(b.recuperacion)} dias` : `${f(Math.max(0, -b.excedente * c.etaInv) / 1000, 3)} kWh/dia`];
   }));
   const avisos = [...r.avisos, ...(e?.avisos ?? [])];
   doc.setFontSize(6.5);
@@ -73,6 +79,7 @@ export function construirInforme({ proyecto, resultados, h, config: c, resultado
     : 'Sin bateria: Egen=Ecc; etaBat y recuperacion no aplican. ') + 'Beta Voc se aplica a Vmp. JSON del proyecto conserva entradas y catalogos completos.';
   doc.text(doc.splitTextToSize(metodo, 185), 12, y);
   doc.setFontSize(5.5);
+  doc.text(doc.splitTextToSize(text(`Ficha panel: ${h.modulo.fuente ?? 'No declarada'}`), 185).slice(0, 2), 12, 274);
   doc.text(doc.splitTextToSize(text(`Ficha equipo: ${e?.equipo.fuente ?? 'No seleccionado'}`), 185).slice(0, 3), 12, 281);
   line('Referencias TdR sin fabricante. Revisar alertas antes de adoptar el diseno. 1 / 1', 293, 6);
   return doc;

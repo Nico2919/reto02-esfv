@@ -55,7 +55,7 @@ function Equipo({ evaluacion: e, seleccionado, onElegir, onReorganizar }) {
   </article>;
 }
 
-export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogos, setCatalogos, resultado: r, errorCatalogo, onIr, onEjemplo }) {
+export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogos, setCatalogos, resultado: r, errorCatalogo, onIr, onEjemplo, onCasoFinal }) {
   const [editor, setEditor] = useState(null);
   const [editorError, setEditorError] = useState('');
   const [tipoEquipo, setTipoEquipo] = useState('todos');
@@ -100,7 +100,7 @@ export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogo
     <header className="r3-heading"><div><span className="r3-eyebrow">RETO 03</span><h2>Diseña tu sistema solar</h2><p>De tus aparatos al inversor y las baterías, paso a paso.</p></div></header>
     <section className="r3-welcome"><div className="r3-welcome-icon"><BatteryCharging size={36} /></div>
       <h3>Empieza con lo que necesitas alimentar</h3><p>Agrega tus aparatos y las horas en que los usas. Después podrás elegir paneles, inversor y baterías.</p>
-      <div className="r3-actions"><button className="r3-primary" onClick={() => onIr('cargas')}>Agregar mis aparatos <ArrowRight size={16} /></button><button onClick={onEjemplo}>Probar con un ejemplo</button></div>
+      <div className="r3-actions"><button className="r3-primary" onClick={() => onIr('cargas')}>Agregar mis aparatos <ArrowRight size={16} /></button><button onClick={onCasoFinal}>Abrir caso final: papelería</button><button onClick={onEjemplo}>Probar con un ejemplo</button></div>
       <small>Si ya tienes un proyecto guardado, usa «Abrir proyecto» en la parte superior.</small>
     </section>
   </div>;
@@ -108,7 +108,7 @@ export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogo
   return <div className="reto03">
     <header className="r3-heading"><div><span className="r3-eyebrow">RETO 03</span><h2>Inversor y baterías</h2>
       <p>Elige cómo usar la energía solar y comprueba si tu sistema alcanza.</p></div>
-      <button onClick={onEjemplo}>Probar con un ejemplo</button>
+      <div className="r3-actions"><button onClick={onCasoFinal}>Abrir caso final: papelería</button><button onClick={onEjemplo}>Probar con un ejemplo</button></div>
     </header>
 
     <section className="r3-overview" aria-label="Resumen de tu sistema">
@@ -161,7 +161,7 @@ export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogo
     </section>
 
     {r.errores.length ? <section role="alert" className="r3-error"><h3>Revisa estos datos para continuar</h3><ul>{r.errores.map((e, i) => <li key={i}>{errorAmigable(e)}</li>)}</ul>
-      <div className="r3-actions"><button onClick={() => patch({ ns: null })}>Restablecer conexión de paneles</button><button onClick={() => onIr('generador')}>Revisar paneles solares</button></div>
+      <div className="r3-actions"><button onClick={() => patch({ ns: null, ajuste: null })}>Restablecer conexión de paneles</button><button onClick={() => onIr('generador')}>Revisar paneles solares</button></div>
     </section> : <>
       <section><div className="r3-step-title"><span>2</span><div><h3>Elige el equipo</h3><p>Compara las opciones y selecciona la que vas a revisar.</p></div></div>
         <div className="r3-fields">
@@ -222,13 +222,16 @@ export default function Reto03Tab({ heredados: h, config: c, setConfig, catalogo
         </div>
         <div className="r3-balance-grid">{[['anual', 'Un día promedio del año'], ['critico', 'Un día del mes con menos sol']].map(([key, label]) => {
           const b = r.balance[key], adicionales = agregar(b);
+          const cabe = !h.limitarPorArea || (r.arreglo.nTotal + adicionales) * h.modulo.area <= h.areaDisponible + 1e-9;
           return <article className="r3-balance-card" key={key}><span>{label}</span><h4>{f(b.produccion / 1000, 3)} kWh/día</h4>
             <p>Producción estimada de los paneles.</p>
             <dl><div><dt>Potencia solar necesaria</dt><dd>{f(b.requeridaWp / 1000, 3)} kWp</dd></div>
               <div><dt>{b.margenPct < 0 ? 'Déficit' : 'Margen'}</dt><dd className={b.margenPct < 0 ? 'r3-fail' : ''}>{f(Math.abs(b.margenPct))} %</dd></div>
+              {!r.banco && <div><dt>Déficit equivalente en CA</dt><dd>{f(Math.max(0, -b.excedente * c.etaInv) / 1000, 3)} kWh/día</dd></div>}
               {r.banco && <div><dt>Recarga después del respaldo</dt><dd>{b.recuperacion == null ? 'La energía no alcanza' : `${f(b.recuperacion)} días`}</dd></div>}
             </dl>
-            <button className="r3-primary" disabled={!adicionales} onClick={() => patch({ ajuste: key, ns: null })}>{adicionales ? `Añadir ${adicionales} paneles para este escenario` : 'No necesitas añadir paneles'}</button>
+            <button className="r3-primary" disabled={!adicionales || !cabe} onClick={() => patch({ ajuste: key, ns: null })}>{!cabe ? `La ampliación no cabe en ${f(h.areaDisponible, 0)} m²` : adicionales ? `Añadir ${adicionales} paneles para este escenario` : 'No necesitas añadir paneles'}</button>
+            {!cabe && <p>{r.banco ? 'El área es obligatoria y no permite ampliar el generador para cubrir este consumo.' : 'El área es obligatoria. La red debe aportar la energía que falta; este arreglo no cubre el 100 % del consumo.'}</p>}
           </article>;
         })}</div>
         {r.modulosAgregados > 0 && <div className="r3-adjustment"><p><b>Se añadieron {r.modulosAgregados} paneles.</b> Ahora tienes {r.arreglo.nTotal} paneles; se revisaron de nuevo los equipos.</p><button onClick={() => patch({ ajuste: null, ns: null })}>Deshacer ampliación</button></div>}

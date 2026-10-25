@@ -1,10 +1,26 @@
 import { readFileSync } from 'node:fs';
 import { calcularGenerador } from '../src/reto02/generador.js';
+import { transponerATiltoMensual } from '../src/reto02/recurso.js';
 import { calcularReto03, heredarReto03 } from '../src/reto03/calculos.js';
 import { leerProyecto } from '../src/reto03/proyecto.js';
 
 const leer = ruta => JSON.parse(readFileSync(new URL(`../${ruta}`, import.meta.url), 'utf8'));
-export const fechaEntrega = '2026-10-24';
+export const fechaEntrega = '2026-10-25';
+
+export function casoPapeleria() {
+  const p = leer('entrega/reto03/entrada/papeleria-original.json');
+  p.proyecto.fecha = fechaEntrega;
+  p.proyecto.notas = 'CASO DEL DOCENTE: 30 m2 obligatorios. Sistema on-grid sin baterias, limitado al espacio disponible. Equipos electricamente compatibles; la produccion solar es parcial y la red debe cubrir el deficit. No hay autonomia sin red.';
+  p.generador.catalogo = leer('public/catalogo_modulos.json');
+  Object.assign(p.generador, { moduloForzado: true, moduloSeleccionadoId: 'longi500', limitarPorArea: true, sitioId: 'neiva-cache' });
+  p.catalogosReto03 = { conversion: [...leer('public/catalogo_conversion.json'), ...leer('public/catalogo_conversion_tdr.json')], baterias: leer('public/catalogo_baterias.json') };
+  Object.assign(p.reto03, { rama: 'sin', catalogo: 'comercial', equipoSin: 'goodwe-ms6k', ajuste: null, ns: 7 });
+  const g = p.generador;
+  const mensual = transponerATiltoMensual({ lat: g.lat, tiltDeg: g.inclinacion, azimutDeg: g.azimut, ...g.rawDataApi });
+  p.baseSolar.push({ id: 'neiva-cache', nombre: 'Neiva - coordenadas y recurso guardados', lat: g.lat, lon: g.lon, mensual,
+    fuente: 'NASA POWER guardado en el JSON original; transposicion local. No se ha realizado una consulta nueva.', fechaConsulta: '2026-10-24' });
+  return p;
+}
 
 export function casosEntrega() {
   const carga = (id, nombre, cantidad, potencia, horas) => ({
@@ -47,7 +63,8 @@ export function casosEntrega() {
   const propio = structuredClone(propioBase);
   propio.proyecto.nombre = 'Caso propuesto - aula rural - cierre';
   Object.assign(propio.reto03, { ajuste: 'critico', ns: 4 });
-  return { 'tdr-agm': agm, 'tdr-lfp': lfp, 'tdr-sin-almacenamiento': red, 'propio-partida': propioBase, 'propio-cierre': propio };
+  return { 'papeleria-final': casoPapeleria(),
+    'tdr-agm': agm, 'tdr-lfp': lfp, 'tdr-sin-almacenamiento': red, 'propio-partida': propioBase, 'propio-cierre': propio };
 }
 
 export function reconstruirProyecto(entrada) {
@@ -61,13 +78,16 @@ export function reconstruirProyecto(entrada) {
     energiaMes: energiaDia * p.proyecto.diasMes, costoMes: energiaDia * p.proyecto.diasMes * p.proyecto.cu,
   };
   const g = p.generador;
-  if (g.modoRecurso !== 'local' || !g.moduloForzado) throw new Error('Los casos de entrega requieren recurso local y modulo explicito para reproducirse sin red.');
+  if (!g.moduloForzado) throw new Error('Los casos de entrega requieren un modulo explicito para reproducirse.');
+  if (g.modoRecurso === 'api' && !g.rawDataApi) throw new Error('Falta el recurso solar guardado: la entrega no realiza consultas de red.');
   const sitio = p.baseSolar.find(s => s.id === g.sitioId);
   const modulo = g.catalogo.find(m => m.id === g.moduloSeleccionadoId);
-  const hspAnual = sitio.anualOficial ?? sitio.mensual.reduce((s, v) => s + v, 0) / 12;
-  const hspCritico = sitio.mesCriticoOficial ?? Math.min(...sitio.mensual);
+  const esApi = g.modoRecurso === 'api' && g.rawDataApi;
+  const mensual = esApi ? transponerATiltoMensual({ lat: g.lat, tiltDeg: g.inclinacion, azimutDeg: g.azimut, ...g.rawDataApi }) : sitio.mensual;
+  const hspAnual = !esApi && sitio.anualOficial != null ? sitio.anualOficial : mensual.reduce((s, v) => s + v, 0) / 12;
+  const hspCritico = !esApi && sitio.mesCriticoOficial != null ? sitio.mesCriticoOficial : Math.min(...mensual);
   const dimension = calcularGenerador({ ed: energiaDia, hsp: g.criterioDimension === 'anual' ? hspAnual : hspCritico,
-    pr: g.pr, modulo, vMaxSistema: g.vMaxSistema, tMin: g.tMinAmbiente, tOp: g.tOperacion, areaDisponible: g.areaDisponible, catalogo: g.catalogo });
+    pr: g.pr, modulo, vMaxSistema: g.vMaxSistema, tMin: g.tMinAmbiente, tOp: g.tOperacion, areaDisponible: g.areaDisponible, catalogo: g.catalogo, limitarPorArea: g.limitarPorArea });
   if (dimension.bloqueado) throw new Error(dimension.errores.join('; '));
   const h = heredarReto03({ resultados, proyecto: p.proyecto, dimension, modulo, gen: g, hspAnual, hspCritico, sitio });
   const resultado = calcularReto03(h, p.reto03, p.catalogosReto03);

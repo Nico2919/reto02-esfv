@@ -1,8 +1,10 @@
 # Validación Reto 03
 
-Versión 3.2.1: 20 pruebas numéricas/de regresión y 9 recorridos de navegador, más `pnpm entrega:verificar`. El motor de cálculo conserva sus ecuaciones; la interfaz permite iniciar un proyecto vacío, probar el caso académico y consultar los detalles técnicos bajo demanda.
+Versión 3.3.0: **26 pruebas numéricas/de regresión, 10 recorridos de navegador** y `pnpm entrega:verificar`. Los seis proyectos y sus informes se reconstruyen desde las entradas publicadas. Los Retos 01/02 mantienen su comportamiento anterior al desactivar el nuevo límite obligatorio de área.
 
-La [entrega versionada](../entrega/reto03/README.md) contiene cinco proyectos, cinco informes PDF de una página y seis escenarios de sensibilidad. La verificación revisa hashes de fuentes/archivos y reconstruye todos los resultados. Un recorrido adicional abre los cinco JSON en el navegador y vuelve a exportar sus informes sin reingresar datos. La [matriz de la guía](../entrega/reto03/MATRIZ_ENTREGABLES.md) distingue requisitos implementados y datos de ficha que permanecen pendientes.
+La [papelería](../entrega/reto03/MEMORIA_PAPELERIA.md) conserva 27.800 Wh/día, 3.150 W, coordenadas, recurso solar y 30 m². Se verifican 14 LONGi de 500 W en 7S2P, 28,5768 m², GoodWe de 6 kW, DC/AC 1,166667 y déficit crítico del 37,3451 %. Las pruebas exigen que el déficit siga visible y que una ampliación no pueda superar el área. No se confunde la compatibilidad eléctrica con cobertura total.
+
+La [entrega](../entrega/reto03/README.md) reúne seis JSON y seis PDF de una página: papelería, tres casos TdR y dos casos complementarios con baterías. Los hashes comprueban sus fuentes y salidas. El navegador abre cada JSON y vuelve a exportar su informe. La [matriz de la guía](../entrega/reto03/MATRIZ_ENTREGABLES.md) registra el alcance y los datos pendientes.
 
 ## Matriz de cobertura
 
@@ -10,7 +12,7 @@ La [entrega versionada](../entrega/reto03/README.md) contiene cinco proyectos, c
 |---|---|
 | 25 | Rama automática/manual; recorrido de interfaz off-grid/on-grid/híbrido |
 | 26 | Adaptador de cargas, perfil, generador y recurso; unidades Wh/W y ventana fija 06-18 |
-| 27 | Tres JSON externos, editor atómico; doce comerciales (nueve inversores y tres reguladores), seis TdR y dos tecnologías de batería |
+| 27 | Tres JSON externos, editor atómico; quince comerciales (doce inversores y tres reguladores), seis TdR y dos tecnologías de batería |
 | 28 | Voc frío, Vmp caliente/frío, MPPT, arranque y Ns máximo; incluye Tmin=0 |
 | 29 | Imp/Isc por MPPT, reparto par/impar y salida al banco sin 1,25 |
 | 30 | DC/AC editable, recorte/sobredimensión; caso INV-A/B/C |

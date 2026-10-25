@@ -23,6 +23,7 @@ export function heredarReto03({ resultados, proyecto, dimension, modulo, gen, hs
     hspAnual, hspCritico, pr: gen.pr,
     requeridaReto02Wp: dimension.ppico * 1000, excedenteReto02Pct: dimension.excedentePct,
     areaGenerador: dimension.areaGen, areaDisponible: gen.areaDisponible, corrienteDisenoReto02: dimension.iDiseno,
+    limitarPorArea: Boolean(gen.limitarPorArea),
     recursoNombre: sitio?.nombre, recursoFuente: gen.modoRecurso === 'api' && gen.apiStatus === 'ok' ? 'NASA POWER; transposicion local al plano del generador' : sitio?.fuente,
     errores: dimension.bloqueado ? dimension.errores : [],
   };
@@ -168,6 +169,7 @@ export function calcularReto03(h, c, catalogos) {
   const necesarios = c.ajuste ? Math.max(baseTotal, Math.ceil(baseBalance[c.ajuste].requeridaWp / h.modulo.potencia - 1e-10)) : baseTotal;
   // The accepted expansion adds full original strings. Rewiring preserves that count.
   const nTotal = Math.ceil(necesarios / h.ns) * h.ns;
+  if (h.limitarPorArea && nTotal * h.modulo.area > h.areaDisponible + 1e-9) return { rama, errores: ['La ampliacion supera el area obligatoria del proyecto. Conserve el limite de superficie: no es posible cubrir todo este consumo ampliando el generador en el espacio declarado.'] };
   if (!Number.isSafeInteger(nTotal) || nTotal > 1e6) return { rama, errores: ['El generador solicitado excede el rango de calculo (un millon de modulos). Revise energia y autonomia.'] };
   const ns = c.ns ?? h.ns;
   if (!entero(ns) || nTotal % ns !== 0) return { rama, errores: ['Ns debe ser un divisor entero del numero de modulos. Restablezca la configuracion heredada.'] };
@@ -190,6 +192,9 @@ export function calcularReto03(h, c, catalogos) {
   const seleccionado = equipos.find(e => e.equipo.id === seleccionadoId);
   const banco = rama === 'con' ? bancoBaterias(h, c, bateria, arreglo.potenciaWp) : null;
   const avisos = [];
+  if (h.limitarPorArea && balance.critico.margenPct < 0) avisos.push(rama === 'sin'
+    ? 'La superficie obligatoria limita la generacion: la energia solar no cubre todo el consumo. La red debe aportar el deficit; no hay cobertura solar del 100 %.'
+    : 'La superficie obligatoria limita la generacion: no alcanza para cubrir todo el consumo y recuperar el banco. Revise la viabilidad del sistema con almacenamiento.');
   if (positivo(h.areaDisponible) && arreglo.nTotal * h.modulo.area > h.areaDisponible) avisos.push('El arreglo efectivo supera el area disponible del Reto 02. Revise el espacio antes de ampliar.');
   if (!seleccionado) avisos.push('Seleccione un equipo del catalogo activo.');
   if (!equipos.some(e => !e.fallos.length)) avisos.push('Ningun equipo admite el arreglo: reconfigure cadenas, agregue otro equipo con reparto independiente o reduzca el generador.');

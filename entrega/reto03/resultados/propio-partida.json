@@ -1,7 +1,7 @@
 {
   "proyecto": {
     "nombre": "Caso propuesto - aula rural - partida",
-    "fecha": "2026-10-24",
+    "fecha": "2026-10-25",
     "integrantes": "Nicolas Paz",
     "tipoApp": "Híbrido",
     "diasMes": 30,
@@ -107,6 +107,7 @@
     "areaGenerador": 5.16,
     "areaDisponible": 20,
     "corrienteDisenoReto02": 21.875,
+    "limitarPorArea": false,
     "recursoNombre": "Alta Guajira - recurso supuesto para estudio",
     "recursoFuente": "Supuesto de diseno: HSP anual 5.8 y critica 5.2 del escenario TdR; no es una medicion del aula.",
     "errores": []

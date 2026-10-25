@@ -20,7 +20,7 @@ test('Catalogo: al menos cuatro inversores reales por rama y cinco fabricantes c
   for (const e of fichas) {
     const url = new URL(e.fuente);
     assert.equal(url.protocol, 'https:'); assert.ok(dominios.has(url.hostname));
-    assert.ok(url.pathname.endsWith('.pdf')); assert.ok(e.revision); assert.equal(e.fechaConsulta, '2026-10-24');
+    assert.ok(url.pathname.endsWith('.pdf')); assert.ok(e.revision); assert.match(e.fechaConsulta, /^\d{4}-\d{2}-\d{2}$/);
   }
 });
 

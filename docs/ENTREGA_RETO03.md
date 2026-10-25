@@ -1,44 +1,35 @@
-# Entrega del proyecto - Reto 03 ESFV
+# Preparación y revisión de la entrega final
 
-## Objeto de la entrega
+La **versión 3.3.0** conserva una sola aplicación web y organiza la revisión en tres partes: [papelería del docente](../entrega/reto03/MEMORIA_PAPELERIA.md), validación estandarizada TdR y estudio complementario con baterías. Todos los archivos están enlazados en el [índice de entrega](../entrega/reto03/README.md).
 
-Dimensionamiento del regulador/inversor MPPT y banco de baterías. Una sola aplicación conserva las cargas y los paneles de los Retos 01/02 e incorpora las dos ramas del Reto 03. El alcance funcional y los resultados esperados se documentan en [VALIDACION_RETO03.md](VALIDACION_RETO03.md).
-
-La versión 3.2.1 contiene el [paquete completo de revisión](../entrega/reto03/README.md), contrastado con la guía de tres páginas: [matriz de criterios y RF](../entrega/reto03/MATRIZ_ENTREGABLES.md). Incluye un recorrido guiado y nueve inversores comerciales con documentación oficial, descritos en [CATALOGO_INVERSORES.md](CATALOGO_INVERSORES.md).
-
-## Demostración sugerida
+## Demostración recomendada
 
 1. Ejecutar `pnpm install --frozen-lockfile` y `pnpm dev`.
-2. Abrir la dirección local y pulsar **Probar con un ejemplo**.
-3. Verificar el caso AGM: 16 baterías y 38,40 kWh instalados; revisar el déficit en el mes con menos sol.
-4. Cambiar a LFP: 5 baterías y 25,60 kWh. Abrir los ajustes para ver banco de 51,2 V y clase nominal de 48 V.
-5. Elegir **No, usaré conexión a la red**: desaparece el banco y se comparan inversores sin almacenamiento.
-6. Volver a baterías, añadir paneles para el escenario de menor sol y mostrar que se revisan otra vez los equipos. Deshacer la ampliación.
-7. Guardar el JSON, cambiar un dato y abrirlo de nuevo. Descargar el informe PDF.
+2. Abrir **Caso final: papelería** y mostrar las ocho cargas, 27,8 kWh/día y 30 m² obligatorios.
+3. Revisar las fichas LONGi de 500 W y GoodWe de 6 kW; comprobar 14 módulos y 7S2P.
+4. Explicar que el inversor y el área cumplen, pero la cobertura energética es parcial. Mostrar el déficit y que la ampliación fuera de 30 m² está bloqueada.
+5. Guardar/abrir el proyecto y descargar su informe PDF de una página.
+6. Probar el ejemplo TdR y cambiar entre AGM, LFP y sin baterías para demostrar la otra rama.
+7. Revisar la sensibilidad de autonomía, DoD y tecnología en el anexo con almacenamiento.
 
-La demostración usa referencias TdR, identificadas como académicas. El catálogo comercial se selecciona en **Elige el equipo**. Allí se pueden actualizar los equipos de proyectos anteriores y filtrar inversores/reguladores. Los datos que no estén declarados en las fichas permanecen como pendientes; no se presentan como aprobados.
+## Archivos versionados
 
-## Archivos para presentar
+- Aplicación, instrucciones y catálogos oficiales.
+- Entrada original del docente y proyecto dimensionado sin cambiar sus cargas, recurso ni superficie.
+- Seis proyectos JSON, seis informes PDF y resultados completos.
+- Memorias de diseño, matriz de la guía, método, manual, fuentes e historial.
+- Manifest SHA-256, scripts de regeneración/verificación y pruebas en GitHub Actions.
 
-- Aplicación web integrada, código e instrucciones de la raíz; es la única versión funcional pedida por la guía.
-- [Cinco proyectos JSON e informes PDF](../entrega/reto03/README.md#proyectos-que-se-pueden-abrir-e-informes): TdR AGM/LFP/sin baterías y caso propio propuesto antes/después del cierre.
-- [Memoria del caso propio y sensibilidad](../entrega/reto03/MEMORIA_CASO_PROPIO.md), con resultados completos y tabla CSV.
-- Guía de uso, método, matriz RF, catálogo y fuentes; [correspondencia con cada criterio](../entrega/reto03/MATRIZ_ENTREGABLES.md).
-- Historial de versiones, pruebas y manifest de integridad verificado por GitHub Actions.
-
-Los informes publicados incluyen Nicolas Paz, como consta en el proyecto local guardado. Los nombres, fecha e integrantes pueden corregirse en **Proyecto** antes de volver a exportar. El caso propio es una propuesta de estudio explícita; no se presenta como medición real. El uso de IA está declarado en el índice de entrega.
-
-## Comprobaciones de una actualización
+## Comprobaciones antes de publicar
 
 ```sh
-pnpm test
+pnpm entrega:generar
 pnpm entrega:verificar
+pnpm test
 pnpm lint
 pnpm build
 pnpm exec playwright install chromium
 pnpm test:ui
 ```
 
-En Windows se puede usar Edge con `$env:PLAYWRIGHT_CHANNEL = 'msedge'`. Las pruebas de navegador comprueban el recorrido inicial, el ejemplo, ambas ramas, baterías, ampliación reversible, entradas inválidas, lectura de proyectos anteriores, PDF y pantallas pequeñas. El cálculo físico conserva sus pruebas de regresión.
-
-El repositorio conserva su URL histórica y los retos anteriores. Si cambian las entradas de los casos, los catálogos de origen o el motor, ejecutar `pnpm entrega:generar`, revisar los cinco PDF y verificar la entrega antes de publicar. La rama `main` mantiene el código y sus evidencias actuales.
+En Windows se puede usar Edge con `$env:PLAYWRIGHT_CHANNEL = 'msedge'`. Revisar visualmente los seis PDF después de regenerarlos. El uso de IA está declarado; los límites no declarados por las referencias académicas permanecen pendientes. No se atribuyen los resultados a valores de referencia reservados del docente.

@@ -32,3 +32,13 @@ El indicador original de Reto 02 (`1,25 × 1,25 × Isc`) se conserva e identific
 
 
 Consulte también [las fórmulas y el glosario de la aplicación](../public/guia-tecnica.html) y la [validación numérica](VALIDACION_RETO03.md).
+
+## Área obligatoria y sistemas on-grid
+
+El modo optativo `limitarPorArea` conserva el cálculo de potencia necesaria, pero limita el número instalado a `min(N necesarios, floor(área disponible / área módulo))`. Se escoge una configuración entera que no exceda ese número ni Ns máximo. Desactivado, se conserva el algoritmo anterior. La superficie no se trata como un valor que pueda aumentarse para ocultar un incumplimiento.
+
+En el caso final se mantienen 30 m² y se instalan 14 módulos; Reto 03 los reorganiza a 7S2P sin cambiar la cantidad. La potencia requerida y el balance siguen usando los 27,8 kWh/día completos. Una ampliación fuera de la superficie obligatoria se bloquea.
+
+Para la rama sin baterías, el déficit neto equivalente en CA es `max(0, Ecc - Ppico*HSP*PR) * etaInv`. No cuantifica la importación horaria real ni el autoconsumo instantáneo. La compatibilidad del inversor y la cobertura del consumo son comprobaciones distintas.
+
+El recurso NASA guardado se transpone sin nuevas solicitudes de red mediante `src/reto02/recurso.js`, que conserva las ecuaciones y la integración numérica previas. Se comprueba con los doce valores mensuales guardados del caso.

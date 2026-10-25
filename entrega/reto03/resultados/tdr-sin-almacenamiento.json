@@ -1,7 +1,7 @@
 {
   "proyecto": {
     "nombre": "Caso TdR - sin almacenamiento",
-    "fecha": "2026-10-24",
+    "fecha": "2026-10-25",
     "integrantes": "Nicolas Paz",
     "tipoApp": "On-grid",
     "diasMes": 30,
@@ -107,6 +107,7 @@
     "areaGenerador": 10.32,
     "areaDisponible": 20,
     "corrienteDisenoReto02": 21.875,
+    "limitarPorArea": false,
     "recursoNombre": "Nazareth TdR",
     "recursoFuente": "Caso estandarizado TdR",
     "errores": []

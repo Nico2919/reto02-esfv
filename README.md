@@ -1,14 +1,29 @@
-# Reto 03 ESFV · Inversor y banco de baterías
+# Reto 03 ESFV · Entrega final 2026-II
 
-Aplicación web para elegir el equipo de conversión y dimensionar el almacenamiento de un sistema solar fotovoltaico. Proyecto de Energía Solar Fotovoltaica, Universidad del Magdalena, periodo 2026-II.
+[![Validación](https://github.com/Nico2919/reto02-esfv/actions/workflows/validacion.yml/badge.svg)](https://github.com/Nico2919/reto02-esfv/actions/workflows/validacion.yml)
 
-**Versión 3.2.1.** La entrega se centra en Reto 03. El registro de aparatos y el cálculo de paneles de los Retos 01 y 02 se mantienen integrados como datos de partida.
+**Versión 3.3.0 · 25 de octubre de 2026**
 
-**[Abrir la entrega completa del Reto 03](entrega/reto03/README.md):** cinco proyectos reabribles, cinco informes PDF de una página, caso propio propuesto, sensibilidad, matriz de la guía y verificación automática de integridad.
+Universidad del Magdalena · Energía Solar Fotovoltaica · Nicolas Paz Mejia
 
-## Probar la aplicación
+Aplicación web para dimensionar paneles, inversor/regulador MPPT y baterías. Integra los Retos 01, 02 y 03 en un recorrido de cinco pasos, con datos heredados, catálogos verificables y un informe de una página.
 
-Requisitos: Node.js 24 y pnpm 11.25.0.
+## Caso final: papelería con servicio de copiado
+
+| Abrir y revisar | Contenido |
+|---|---|
+| [Proyecto final JSON](entrega/reto03/casos/papeleria-final.json) | Caso del docente, listo para **Abrir proyecto** |
+| [Informe ejecutivo PDF](entrega/reto03/informes/papeleria-final.pdf) | Una página con equipos, verificaciones y balance |
+| [Memoria del caso](entrega/reto03/MEMORIA_PAPELERIA.md) | Selección, fichas, restricciones y déficit explicado |
+| [Índice completo de entrega](entrega/reto03/README.md) | Caso final, validaciones TdR y anexos |
+
+**Restricción obligatoria: 30 m².** Se mantienen las ocho cargas y los datos solares del archivo original: 27,8 kWh/día y 3.150 W de demanda máxima. Se seleccionan **14 LONGi LR7-54HVH-500M (7 kWp, 28,5768 m²)** y un **GoodWe GW6000-MS-30 de 6 kW**, con dos cadenas de siete módulos en MPPT separados.
+
+**La compatibilidad de los equipos no significa cobertura total del consumo.** El área permite una producción parcial: aproximadamente 62,7 % de la energía diaria en el escenario crítico del método. La aplicación muestra el déficit y bloquea ampliaciones que superen los 30 m². Se conserva el [JSON original del docente](entrega/reto03/entrada/papeleria-original.json); no se aumentan la superficie ni las HSP para obtener un aprobado.
+
+## Ejecutar la aplicación
+
+Requisitos: **Node.js 24** y **pnpm 11.25.0**. Se usa un único archivo de dependencias bloqueadas: `pnpm-lock.yaml`.
 
 ```sh
 git clone https://github.com/Nico2919/reto02-esfv.git
@@ -17,33 +32,21 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Abre la dirección que muestra Vite, normalmente **http://localhost:5173**. Para explorar el caso académico, pulsa **Probar con un ejemplo**. Para empezar tu propio diseño, pulsa **Agregar mis aparatos** o **Abrir proyecto**.
+Abre la dirección que muestra Vite, normalmente **http://localhost:5173**, y pulsa **Abrir caso final: papelería**. También puedes empezar desde cero, abrir un JSON o probar el caso estandarizado de Alta Guajira.
 
-## Qué permite hacer
+## Documentación y entregables
 
-- Trabajar con baterías (sistemas aislados o híbridos) o sin baterías (conectados a red).
-- Comparar inversores y reguladores, comprobar voltajes/corrientes y reorganizar los paneles cuando sea posible.
-- Calcular cantidad de baterías, capacidad, autonomía y límites de carga/descarga.
-- Revisar la energía disponible durante el año y en el mes con menos sol; añadir paneles y deshacer la ampliación.
-- Guardar/abrir el proyecto completo y descargar un informe ejecutivo PDF de una página.
-
-La pantalla principal usa lenguaje sencillo. Las fórmulas, siglas, comprobaciones completas y catálogos editables están en secciones desplegables y en la guía técnica. Las alertas relevantes siguen visibles. «Requiere revisión» indica que faltan datos de ficha; no equivale a compatibilidad confirmada.
-
-## Documentos para la entrega
-
-| Documento | Contenido |
+| Documento | Para qué sirve |
 |---|---|
-| [Guía de uso](docs/GUIA_USO.md) | Recorrido para una persona que abre la aplicación por primera vez |
-| [Entrega del Reto 03](docs/ENTREGA_RETO03.md) | Alcance, demostración y archivos del proyecto |
-| [Paquete de entregables](entrega/reto03/README.md) | JSON, PDF, resultados completos y sensibilidad listos para revisar |
-| [Matriz de la guía](entrega/reto03/MATRIZ_ENTREGABLES.md) | Correspondencia de cada criterio y RF con su evidencia |
-| [Caso propio y sensibilidad](entrega/reto03/MEMORIA_CASO_PROPIO.md) | Supuestos, selección del equipo, ajuste del generador y seis escenarios |
-| [Validación RF-25 a RF-36](docs/VALIDACION_RETO03.md) | Matriz de requisitos y resultados numéricos esperados |
-| [Método de cálculo](docs/METODO_CALCULO.md) | Ecuaciones, unidades, supuestos y datos pendientes |
-| [Catálogo de inversores](docs/CATALOGO_INVERSORES.md) | Nueve modelos reales, límites por revisión y documentos oficiales |
-| [Historial de actualizaciones](CHANGELOG.md) | Cambios por versión |
+| [Entrega final](entrega/reto03/README.md) | Índice de seis proyectos, seis PDF y resultados reproducibles |
+| [Matriz de la guía](entrega/reto03/MATRIZ_ENTREGABLES.md) | Evidencia de cada criterio y RF-25 a RF-36 |
+| [Manual de uso](docs/GUIA_USO.md) | Recorrido de la aplicación |
+| [Índice técnico](docs/README.md) | Método, validación, módulos e inversores |
+| [Actualizaciones](CHANGELOG.md) | Historial de versiones |
 
-## Verificar una actualización
+El catálogo contiene **12 inversores reales**, tres reguladores Victron y cinco módulos comerciales con fichas oficiales. Las referencias académicas TdR y las baterías ilustrativas AGM/LFP están identificadas por separado. Los proyectos guardan sus entradas y catálogos para reconstruir los resultados.
+
+## Validación y actualización
 
 ```sh
 pnpm test
@@ -54,33 +57,23 @@ pnpm exec playwright install chromium
 pnpm test:ui
 ```
 
-Las pruebas de interfaz usan la compilación de `dist/` y abren su propio servidor en el puerto 4173. En Windows con Edge instalado:
+En Windows con Edge instalado: `$env:PLAYWRIGHT_CHANNEL = 'msedge'` antes de `pnpm test:ui`. Las pruebas de navegador abren su propio servidor en el puerto 4173.
 
-```powershell
-$env:PLAYWRIGHT_CHANNEL = 'msedge'
-pnpm test:ui
-```
-
-GitHub Actions ejecuta las pruebas, lint y build al actualizar `main`, las ramas `feat/` y las solicitudes de integración. Su resultado se consulta en **Actions**. Las capturas y PDF de pruebas quedan en `tmp/qa/` localmente; no forman parte del código fuente.
-
-La validación local de esta versión incluye 20 pruebas numéricas/de regresión, 9 recorridos de interfaz y la comprobación de integridad/reconstrucción de la entrega. Los cinco proyectos publicados también se abren y exportan desde la aplicación durante las pruebas. Para regenerar sus salidas tras cambiar datos o motores: `pnpm entrega:generar`, revisión de PDF y `pnpm entrega:verificar`.
+La entrega se comprueba con **26 pruebas numéricas/de regresión y 10 recorridos de interfaz**, además de hashes y reconstrucción de sus archivos. GitHub Actions ejecuta las mismas comprobaciones en cada actualización. Para regenerar informes y proyectos tras un cambio: `pnpm entrega:generar`, revisión de los PDF y `pnpm entrega:verificar`.
 
 ## Organización
 
 ```text
-src/reto03/          Interfaz, cálculo, mensajes, persistencia e informe del Reto 03
-src/reto02/          Motor de paneles del Reto 02, conservado
-src/App.jsx         Integración con aparatos y consumo del Reto 01
-public/             Catálogos JSON, caso de ejemplo y guía técnica
-docs/               Documentación de uso, entrega, método y validación
-entrega/reto03/     Casos, informes, memoria, matriz de la guía y resultados reproducibles
-tests/              Pruebas numéricas y de regresión
-tests-ui/           Recorridos reales en navegador
-.github/workflows/  Validación automática de actualizaciones
+src/                  Aplicación e interfaz de los cinco pasos
+  reto02/             Generador y transposición solar
+  reto03/             Conversión, almacenamiento, persistencia e informe
+public/               Catálogos externos y casos que abre la aplicación
+docs/                 Manual y documentación técnica
+entrega/reto03/       Caso final, PDF, resultados, matriz y anexos
+scripts/              Generación y verificación reproducibles
+tests/                Pruebas de cálculo y regresión
+tests-ui/             Recorridos de la aplicación en navegador
+.github/              Validación automática y plantilla de cambios
 ```
 
-El catálogo incluye **nueve inversores reales** de Deye, GoodWe, Growatt, Solis y Sungrow: cinco con baterías y cuatro de red, más tres reguladores Victron. Cada tarjeta comercial abre su documento oficial. En **Elige el equipo** puedes seleccionar el catálogo comercial, filtrar inversores/reguladores y pulsar **Actualizar equipos comerciales** para incorporar las novedades a un proyecto anterior. [Modelos, revisiones y fichas](docs/CATALOGO_INVERSORES.md).
-
-CTRL-A/B/C, INV-A/B/C y las baterías AGM/LFP del caso de prueba son **referencias académicas**, separadas de productos comerciales. Los catálogos pueden editarse desde la aplicación. El proyecto JSON v3 conserva las entradas y catálogos; también se pueden abrir archivos de los Retos 01/02.
-
-Se conserva la dirección `Nico2919/reto02-esfv` para mantener la continuidad del repositorio. El nombre de la aplicación, documentación e historial identifican la entrega actual como **Reto 03**. Desarrollo asistido por IA (Codex), documentado para revisión y sustentación.
+Se conserva la URL histórica `Nico2919/reto02-esfv` y el historial de los Retos 01/02. La entrega actual corresponde al **Reto 03**. Desarrollo asistido por **IA (Codex)**, declarado para revisión y sustentación. La fecha oficial de entrega es la publicada por el docente en Campus Virtual.

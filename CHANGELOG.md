@@ -1,5 +1,15 @@
 # Actualizaciones
 
+## 3.3.0 - 2026-10-25 · Entrega final
+
+- Caso de papelería del docente integrado, con ocho cargas, NASA guardado y 30 m² sin alteraciones.
+- LONGi LR7-54HVH-500M y GoodWe GW6000-MS-30: 14 módulos, 7 kWp, 28,5768 m² y 7S2P.
+- Modo visible de área obligatoria, balance con déficit real y bloqueo de ampliaciones fuera de superficie; el modo anterior se conserva por defecto.
+- Fichas oficiales de módulos revisadas, variantes GoodWe MS G3 de 5/6/10 kW y enlaces directos desde la aplicación.
+- Caso final accesible en un clic, notas persistentes y PDF con ambas fichas y déficit equivalente en CA.
+- README e índices reorganizados: caso final, pruebas TdR y anexos; un solo lockfile pnpm.
+- Transposición solar extraída sin cambiar ecuaciones; 26 pruebas numéricas y 10 recorridos de navegador.
+
 ## 3.2.1 - 2026-10-24
 
 - Auditoría de las tres páginas de la guía y matriz de cada criterio/RF con evidencia versionada.
